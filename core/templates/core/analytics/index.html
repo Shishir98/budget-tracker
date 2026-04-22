@@ -5,8 +5,8 @@
 <div class="page">
 
   <!-- Period selector -->
-  <div class="card" style="margin-bottom:16px;">
-    <div class="card-p" style="padding-bottom:12px;">
+  <div class="card" style="margin-bottom:16px; background: transparent !important; border: none !important; box-shadow: none !important;">
+    <div class="card-p" style="padding: 0 0 12px 0;">
       <div style="display:flex;gap:6px;margin-bottom:12px;">
         <a href="?period=month&year={{ year }}&month={{ month }}" class="btn btn-sm {% if period == 'month' %}btn-primary{% else %}btn-outline{% endif %}" style="flex:1;text-align:center;">Month</a>
         <a href="?period=quarter&year={{ year }}&quarter={{ quarter }}" class="btn btn-sm {% if period == 'quarter' %}btn-primary{% else %}btn-outline{% endif %}" style="flex:1;text-align:center;">Quarter</a>
@@ -16,39 +16,45 @@
         <input type="hidden" name="period" value="{{ period }}">
         {% if period == 'quarter' %}<input type="hidden" name="quarter" value="{{ quarter }}">{% endif %}
         {% if period == 'month' %}
-        <select name="month" class="form-select" style="flex:1;" onchange="this.form.submit()">
+        <select name="month" class="form-select" style="flex:1; background-color: transparent !important;" onchange="this.form.submit()">
           {% for num, name in months %}<option value="{{ num }}" {% if num == month %}selected{% endif %}>{{ name }}</option>{% endfor %}
         </select>
         {% endif %}
-        <select name="year" class="form-select" style="flex:1;" onchange="this.form.submit()">
+        <select name="year" class="form-select" style="flex:1; background-color: transparent !important;" onchange="this.form.submit()">
           {% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}
         </select>
       </form>
     </div>
   </div>
 
-  <!-- Stats -->
-  <div class="stats-grid">
-    <div class="stat-tile accent-green">
-      <div class="label">Income</div>
-      <div class="value">₹{{ stats.income|floatformat:0 }}</div>
-    </div>
-    <div class="stat-tile accent-red">
-      <div class="label">Expenses</div>
-      <div class="value">₹{{ stats.expense|floatformat:0 }}</div>
-    </div>
-    <div class="stat-tile accent-blue">
-      <div class="label">Net Savings</div>
-      <div class="value">₹{{ stats.savings|floatformat:0 }}</div>
-    </div>
-    <div class="stat-tile accent-purple">
-      <div class="label">Savings Rate</div>
-      <div class="value">{{ stats.savings_rate }}%</div>
+  <!-- Summary -->
+  <div class="card">
+    <div class="card-hd">Summary</div>
+    <div class="card-p">
+      <div class="summary-metrics">
+        <div class="summary-metric accent-green">
+          <div class="label">Income</div>
+          <div class="value">₹{{ stats.income|floatformat:0 }}</div>
+        </div>
+        <div class="summary-metric accent-red">
+          <div class="label">Expenses</div>
+          <div class="value">₹{{ stats.expense|floatformat:0 }}</div>
+        </div>
+        <div class="summary-metric accent-blue">
+          <div class="label">Net Savings</div>
+          <div class="value">₹{{ stats.savings|floatformat:0 }}</div>
+        </div>
+        <div class="summary-metric accent-purple">
+          <div class="label">Savings Rate</div>
+          <div class="value">{{ stats.savings_rate }}%</div>
+        </div>
+      </div>
     </div>
   </div>
 
+
   <!-- Expense breakdown pie -->
-  {% if expense_data != '[]' %}
+  {% if expense_data %}
   <div class="card">
     <div class="card-hd">Where your money went</div>
     <div class="card-p">
@@ -60,7 +66,7 @@
   {% endif %}
 
   <!-- Monthly trend (only when period != month) -->
-  {% if trend_labels != '[]' %}
+  {% if trend_labels %}
   <div class="card">
     <div class="card-hd">Monthly Trend</div>
     <div class="card-p"><div style="height:240px;"><canvas id="trendBar"></canvas></div></div>
@@ -73,58 +79,174 @@
   {% endif %}
 
   <!-- Investment portfolio -->
-  {% if inv_labels != '[]' %}
+  {% if inv_labels %}
   <div class="card">
     <div class="card-hd">Investment Portfolio</div>
     <div class="card-p"><div style="height:240px;"><canvas id="invPie"></canvas></div></div>
   </div>
   {% endif %}
+    <!-- Burn rate + runway -->
+    <div class="card">
+      <div class="card-hd">Burn Rate + Runway</div>
+      <div class="card-p">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--surface);">
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);">Avg Burn / Month</div>
+            <div style="font-size:1.15rem;font-weight:800;margin-top:4px;color:var(--tx-expense-text);">₹{{ burn_rate|floatformat:0 }}</div>
+            <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">Last {{ burn_window_months }} months outgoing</div>
+          </div>
+          <div style="padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--surface);">
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);">Estimated Runway</div>
+            <div style="font-size:1.15rem;font-weight:800;margin-top:4px;">{{ runway_months|floatformat:1 }} months</div>
+            <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">From est. cash ₹{{ estimated_cash|floatformat:0 }}</div>
+          </div>
+        </div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:10px;">
+          Estimate uses all-time net cashflow (income - outgoing) and average monthly outgoing.
+        </div>
+      </div>
+    </div>
+  
+    <!-- Top spending changes -->
+    <div class="card">
+      <div class="card-hd">Top Spending Changes (MoM)</div>
+      <div class="card-p" style="padding-top:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:8px;">
+          <span>{{ mom_current_label }} vs {{ mom_prev_label }}</span>
+          <span>By absolute change</span>
+        </div>
+        {% for c in spending_changes %}
+        <div class="row-item" style="padding:11px 2px;">
+          <div>
+            <div style="font-weight:600;font-size:.88rem;">{{ c.label }}</div>
+            <div style="font-size:.72rem;color:var(--muted);margin-top:1px;">
+              ₹{{ c.current|floatformat:0 }} vs ₹{{ c.previous|floatformat:0 }}
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:800;font-size:.86rem;"
+                 class="{% if c.change > 0 %}text-danger{% elif c.change < 0 %}text-success{% else %}text-muted{% endif %}">
+              {% if c.change > 0 %}+{% endif %}₹{{ c.change|floatformat:0 }}
+            </div>
+            <div style="font-size:.72rem;color:var(--muted);">
+              {% if c.change_pct > 0 %}+{% endif %}{{ c.change_pct|floatformat:0 }}%
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="empty-state" style="padding:20px 12px;">
+          <i class="bi bi-bar-chart-line"></i>
+          <p>No month-over-month spending change data yet</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  
 
 </div>
 {% endblock %}
 {% block extra_js %}
+{{ expense_labels|json_script:"expense-labels-data" }}
+{{ expense_data|json_script:"expense-values-data" }}
+{{ expense_colors|json_script:"expense-colors-data" }}
+{{ trend_labels|json_script:"trend-labels-data" }}
+{{ trend_income|json_script:"trend-income-data" }}
+{{ trend_expense|json_script:"trend-expense-data" }}
+{{ trend_investment|json_script:"trend-investment-data" }}
+{{ trend_savings|json_script:"trend-savings-data" }}
+{{ inv_labels|json_script:"inv-labels-data" }}
+{{ inv_data|json_script:"inv-values-data" }}
+{{ inv_colors|json_script:"inv-colors-data" }}
 <script>
+const getJson = (id) => {
+  const el = document.getElementById(id);
+  if (!el) return [];
+  try {
+    return JSON.parse(el.textContent);
+  } catch (e) {
+    return [];
+  }
+};
+
 const chartOpts = {
   responsive: true, maintainAspectRatio: false,
   plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 }, boxWidth: 10 } } }
 };
 
-{% if expense_data != '[]' %}
-new Chart(document.getElementById('expensePie'), {
-  type: 'doughnut',
-  data: { labels: {{ expense_labels|safe }}, datasets: [{ data: {{ expense_data|safe }}, backgroundColor: {{ expense_colors|safe }}, borderWidth: 2, borderColor: '#fff' }] },
-  options: { ...chartOpts, cutout: '62%' }
-});
-{% endif %}
+const expenseLabels = getJson('expense-labels-data');
+const expenseValues = getJson('expense-values-data');
+const expenseColors = getJson('expense-colors-data');
+const trendLabels = getJson('trend-labels-data');
+const trendIncome = getJson('trend-income-data');
+const trendExpense = getJson('trend-expense-data');
+const trendInvestment = getJson('trend-investment-data');
+const trendSavings = getJson('trend-savings-data');
+const invLabels = getJson('inv-labels-data');
+const invValues = getJson('inv-values-data');
+const invColors = getJson('inv-colors-data');
 
-{% if trend_labels != '[]' %}
-new Chart(document.getElementById('trendBar'), {
-  type: 'bar',
-  data: {
-    labels: {{ trend_labels|safe }},
-    datasets: [
-      { label: 'Income', data: {{ trend_income|safe }}, backgroundColor: 'rgba(46,204,113,.75)', borderRadius: 5, borderSkipped: false },
-      { label: 'Expense', data: {{ trend_expense|safe }}, backgroundColor: 'rgba(231,76,60,.75)', borderRadius: 5, borderSkipped: false }
-    ]
-  },
-  options: { ...chartOpts, scales: { y: { beginAtZero: true, grid: { color: '#F0F0F0' } }, x: { grid: { display: false } } } }
-});
-new Chart(document.getElementById('savingsLine'), {
-  type: 'line',
-  data: {
-    labels: {{ trend_labels|safe }},
-    datasets: [{ label: 'Net Savings', data: {{ trend_savings|safe }}, borderColor: '#5C6BC0', backgroundColor: 'rgba(92,107,192,.1)', fill: true, tension: 0.4, pointRadius: 3 }]
-  },
-  options: { ...chartOpts, scales: { y: { grid: { color: '#F0F0F0' } }, x: { grid: { display: false } } } }
-});
-{% endif %}
+const expenseCanvas = document.getElementById('expensePie');
+if (expenseCanvas && expenseValues.length) {
+  new Chart(expenseCanvas, {
+    type: 'doughnut',
+    data: {
+      labels: expenseLabels,
+      datasets: [{ data: expenseValues, backgroundColor: expenseColors, borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: Object.assign({}, chartOpts, { cutout: '62%' })
+  });
+}
 
-{% if inv_labels != '[]' %}
-new Chart(document.getElementById('invPie'), {
-  type: 'pie',
-  data: { labels: {{ inv_labels|safe }}, datasets: [{ data: {{ inv_data|safe }}, backgroundColor: {{ inv_colors|safe }}, borderWidth: 2, borderColor: '#fff' }] },
-  options: { ...chartOpts }
-});
-{% endif %}
+const trendCanvas = document.getElementById('trendBar');
+if (trendCanvas && trendLabels.length) {
+  new Chart(trendCanvas, {
+    type: 'bar',
+    data: {
+      labels: trendLabels,
+      datasets: [
+        { label: 'Income', data: trendIncome, backgroundColor: 'rgba(46,204,113,.75)', borderRadius: 5, borderSkipped: false },
+        { label: 'Expense', data: trendExpense, backgroundColor: 'rgba(231,76,60,.75)', borderRadius: 5, borderSkipped: false },
+        { label: 'Investment', data: trendInvestment, backgroundColor: 'rgba(111,66,193,.75)', borderRadius: 5, borderSkipped: false }
+      ]
+    },
+    options: Object.assign({}, chartOpts, {
+      scales: { y: { beginAtZero: true, grid: { color: '#F0F0F0' } }, x: { grid: { display: false } } }
+    })
+  });
+}
+
+const savingsCanvas = document.getElementById('savingsLine');
+if (savingsCanvas && trendLabels.length) {
+  new Chart(savingsCanvas, {
+    type: 'line',
+    data: {
+      labels: trendLabels,
+      datasets: [{
+        label: 'Net Savings',
+        data: trendSavings,
+        borderColor: '#5C6BC0',
+        backgroundColor: 'rgba(92,107,192,.1)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 3
+      }]
+    },
+    options: Object.assign({}, chartOpts, {
+      scales: { y: { grid: { color: '#F0F0F0' } }, x: { grid: { display: false } } }
+    })
+  });
+}
+
+const invCanvas = document.getElementById('invPie');
+if (invCanvas && invValues.length) {
+  new Chart(invCanvas, {
+    type: 'pie',
+    data: {
+      labels: invLabels,
+      datasets: [{ data: invValues, backgroundColor: invColors, borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: chartOpts
+  });
+}
 </script>
 {% endblock %}

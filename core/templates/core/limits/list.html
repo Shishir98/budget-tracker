@@ -1,10 +1,24 @@
 {% extends 'core/base.html' %}
 {% block title %}Limits — BudgetIQ{% endblock %}
 {% block page_title %}Budget Limits{% endblock %}
+{% block period_selector %}{% endblock %}
 {% block content %}
 <div class="page">
 
-  <div style="font-size:.75rem;color:var(--muted);margin-bottom:16px;">{{ period_start|date:"d M" }} — {{ period_end|date:"d M Y" }}</div>
+  <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Budget Period</div>
+  <div style="font-size:.85rem;font-weight:600;margin:4px 0 10px;">{{ period_start|date:"d M" }} — {{ period_end|date:"d M Y" }}</div>
+  <form method="get" class="d-flex gap-2 mb-3">
+    <select name="month" class="form-select form-select-sm" onchange="this.form.submit()" style="width:auto;">
+      {% for val, name in months %}
+        <option value="{{ val }}" {% if view_month == val %}selected{% endif %}>{{ name }}</option>
+      {% endfor %}
+    </select>
+    <select name="year" class="form-select form-select-sm" onchange="this.form.submit()" style="width:auto;">
+      {% for y in years %}
+        <option value="{{ y }}" {% if view_year == y %}selected{% endif %}>{{ y }}</option>
+      {% endfor %}
+    </select>
+  </form>
 
   <!-- Set limit form -->
   <div class="card">

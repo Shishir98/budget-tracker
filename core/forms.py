@@ -7,10 +7,11 @@ from django.contrib.auth.models import User
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ['month_start_day', 'currency_symbol']
+        fields = ['month_start_day', 'currency_symbol', 'theme']
         widgets = {
             'month_start_day': forms.NumberInput(attrs={'min': 1, 'max': 28, 'class': 'form-control'}),
             'currency_symbol': forms.TextInput(attrs={'class': 'form-control'}),
+            'theme': forms.Select(attrs={'class': 'form-select'}),
         }
 
 

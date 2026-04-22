@@ -7,15 +7,25 @@ import datetime
 
 
 class UserProfile(models.Model):
+    THEME_CHOICES = [
+        ('light', 'Light'),
+        ('dark', 'Dark'),
+    ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     month_start_day = models.IntegerField(default=1)
     currency_symbol = models.CharField(max_length=5, default='₹')
+    theme = models.CharField(max_length=10, choices=THEME_CHOICES, default='light')
 
-    def get_current_month_range(self):
-        today = timezone.now().date()
+    def get_current_month_range(self, reference_date=None):
+        if reference_date is None:
+            reference_date = timezone.now().date()
+        today = reference_date
         day = self.month_start_day
         if today.day >= day:
-            start = today.replace(day=day)
+            try:
+                start = today.replace(day=day)
+            except ValueError:
+                start = today.replace(day=1)
         else:
             first = today.replace(day=1)
             prev_month = first - datetime.timedelta(days=1)

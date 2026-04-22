@@ -1,13 +1,27 @@
 {% extends 'core/base.html' %}
 {% block title %}Savings — BudgetIQ{% endblock %}
 {% block page_title %}Savings{% endblock %}
+{% block period_selector %}{% endblock %}
 {% block content %}
 <div class="page">
 
   <!-- Period breakdown -->
   <div class="card">
-    <div class="card-hd">{{ period_start|date:"d M" }} — {{ period_end|date:"d M Y" }}</div>
+    <div class="card-hd">Budget Period</div>
     <div class="card-p">
+      <div style="font-size:.85rem;font-weight:600;margin-bottom:10px;">{{ period_start|date:"d M" }} — {{ period_end|date:"d M Y" }}</div>
+      <form method="get" class="d-flex gap-2 mb-3">
+        <select name="month" class="form-select form-select-sm" onchange="this.form.submit()" style="width:auto;">
+          {% for val, name in months %}
+            <option value="{{ val }}" {% if view_month == val %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+        <select name="year" class="form-select form-select-sm" onchange="this.form.submit()" style="width:auto;">
+          {% for y in years %}
+            <option value="{{ y }}" {% if view_year == y %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </form>
       <div class="row-item" style="padding:8px 0;border-bottom:1px solid var(--border);">
         <span style="color:var(--muted);font-size:.875rem;">Total Income</span>
         <span style="font-weight:700;color:#2ECC71;">+₹{{ stats.income|floatformat:0 }}</span>

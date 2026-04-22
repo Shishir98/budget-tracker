@@ -9,3 +9,8 @@ def more_menu(request):
         ('/settings/',      'gear',            'Settings',   '#6B7280'),
     ]
     return {'more_items': items}
+
+def theme_settings(request):
+    if request.user.is_authenticated:
+        return {'theme_mode': getattr(request.user.profile, 'theme', 'light')}
+    return {'theme_mode': 'light'}

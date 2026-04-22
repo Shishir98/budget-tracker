@@ -19,10 +19,13 @@ def get_period_range(user, period='month', year=None, month=None, quarter=None):
             start = datetime.date(y, m, start_day)
         except ValueError:
             start = datetime.date(y, m, 1)
-        if m == 12:
-            end = datetime.date(y + 1, 1, start_day) - datetime.timedelta(days=1)
-        else:
-            end = datetime.date(y, m + 1, start_day) - datetime.timedelta(days=1)
+        next_y, next_m = (y + 1, 1) if m == 12 else (y, m + 1)
+        try:
+            next_start = datetime.date(next_y, next_m, start_day)
+        except ValueError:
+            # Clamp to first day of the following month when start_day is invalid there.
+            next_start = datetime.date(next_y, next_m, 1)
+        end = next_start - datetime.timedelta(days=1)
         return start, end
     
     elif period == 'quarter':

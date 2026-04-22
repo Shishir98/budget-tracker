@@ -30,7 +30,7 @@ Open: http://127.0.0.1:8000
 - 🐷 Savings — calculator, goal planner, purchase wishlist
 - 📋 Summary — planned vs actual spending, month-over-month
 - 📄 PDF Import — parses bank statements (ICICI, HDFC, SBI), auto-categorizes
-- ⚙️ Settings — custom month start date, currency symbol
+- ⚙️ Settings — custom month start date, currency symbol, dark mode
 
 ## Adding New Users (Admin only)
 ```bash

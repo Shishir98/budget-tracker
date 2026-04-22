@@ -5,17 +5,39 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from ..models import Transaction, Category, InvestmentType
 from ..forms import TransactionForm
+from django.utils import timezone
 import datetime
+from .helpers import get_period_range
 
 
 @login_required
 def transaction_list(request):
+    today = timezone.now().date()
+    
+    # Period handling
+    try:
+        view_month = int(request.GET.get('month', today.month))
+    except (TypeError, ValueError):
+        view_month = today.month
+    try:
+        view_year = int(request.GET.get('year', today.year))
+    except (TypeError, ValueError):
+        view_year = today.year
+
+    if view_month < 1 or view_month > 12:
+        view_month = today.month
+
+    try:
+        start, end = get_period_range(request.user, 'month', view_year, view_month)
+    except ValueError:
+        view_month = today.month
+        view_year = today.year
+        start, end = get_period_range(request.user, 'month', view_year, view_month)
+
     # We explicitly order by id in addition to the model's default meta ordering.
     # This prevents "unstable" pagination where items might shift between pages 
     # if they share the exact same timestamp (common with bulk imports).
-    qs = Transaction.objects.filter(user=request.user).select_related('category').order_by(
-        '-date', '-created_at', '-id'
-    )
+    qs = Transaction.objects.filter(user=request.user).select_related('category')
     
     # Filters
     q = request.GET.get('q', '')
@@ -40,14 +62,21 @@ def transaction_list(request):
         qs = qs.filter(category__isnull=True)
     if is_sub:
         qs = qs.filter(is_subscription=True)
+        
+    # If no specific date range or search is provided, default to the selected period
+    if not (date_from or date_to or q):
+        qs = qs.filter(date__gte=start, date__lte=end)
+
+    qs = qs.order_by('-date', '-created_at', '-id')
     
     paginator = Paginator(qs, 25)
     page = paginator.get_page(request.GET.get('page'))
     
     categories = Category.objects.filter(user=request.user)
+    years = range(today.year - 2, today.year + 2)
+    months = [(i, datetime.date(2000, i, 1).strftime('%B')) for i in range(1, 13)]
 
     # Prepare query parameters for pagination links, excluding the 'page' key
-    # to avoid duplication when generating "Next/Previous" links in the template.
     params = request.GET.copy()
     params.pop('page', None)
     
@@ -58,6 +87,8 @@ def transaction_list(request):
         'tx_types': Transaction._meta.get_field('type').choices,
         'total_count': qs.count(),
         'query_params': params.urlencode(),
+        'view_month': view_month, 'view_year': view_year,
+        'months': months, 'years': years,
     })
 
 

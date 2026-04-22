@@ -1,6 +1,23 @@
 {% extends 'core/base.html' %}
 {% block title %}Transactions — BudgetIQ{% endblock %}
 {% block page_title %}Transactions{% endblock %}
+
+{% block period_selector %}
+<form method="get" class="d-flex gap-2">
+  <select name="month" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+    {% for val, name in months %}
+      <option value="{{ val }}" {% if view_month == val %}selected{% endif %}>{{ name }}</option>
+    {% endfor %}
+  </select>
+  <select name="year" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+    {% for y in years %}
+      <option value="{{ y }}" {% if view_year == y %}selected{% endif %}>{{ y }}</option>
+    {% endfor %}
+  </select>
+  {% if filters.q %}<input type="hidden" name="q" value="{{ filters.q }}">{% endif %}
+</form>
+{% endblock %}
+
 {% block content %}
 <div class="page">
 
@@ -22,9 +39,9 @@
       </div>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-primary btn-sm" style="flex:1;">Filter</button>
-        <a href="/transactions/" class="btn btn-outline btn-sm" onclick="sessionStorage.removeItem('bulk_tx_ids')">Clear</a>
-        <a href="/transactions/?unlabeled=1" class="btn btn-sm" style="background:#FFF8E1;color:#E65100;border:none;" onclick="sessionStorage.removeItem('bulk_tx_ids')">Unlabeled</a>
-        <a href="/transactions/?subscription=1" class="btn btn-sm" style="background:#F3F0FF;color:#6f42c1;border:none;">Subscriptions</a>
+        <a href="/transactions/?month={{ view_month }}&year={{ view_year }}" class="btn btn-outline btn-sm" onclick="sessionStorage.removeItem('bulk_tx_ids')">Clear</a>
+        <a href="/transactions/?unlabeled=1&month={{ view_month }}&year={{ view_year }}" class="btn btn-sm" style="background:#FFF8E1;color:#E65100;border:none;" onclick="sessionStorage.removeItem('bulk_tx_ids')">Unlabeled</a>
+        <a href="/transactions/?subscription=1&month={{ view_month }}&year={{ view_year }}" class="btn btn-sm" style="background:#F3F0FF;color:#6f42c1;border:none;">Subscriptions</a>
       </div>
     </div>
   </form>
@@ -55,7 +72,7 @@
       {% if filters.unlabeled %}
       <input type="checkbox" name="tx_ids" value="{{ t.pk }}" class="form-check-input tx-selector" form="bulkForm" style="margin-right:10px;flex-shrink:0;">
       {% endif %}
-      <div class="tx-icon" style="background:{% if t.type == 'income' or t.type == 'side_income' %}#F0FFF4;color:#2ECC71{% elif t.type == 'expense' %}#FFF0F0;color:#E74C3C{% else %}#F3F0FF;color:#6f42c1{% endif %}">
+      <div class="tx-icon" style="background:{% if t.type == 'income' or t.type == 'side_income' %}var(--tx-income-bg);color:var(--tx-income-text){% elif t.type == 'expense' %}var(--tx-expense-bg);color:var(--tx-expense-text){% else %}var(--tx-invest-bg);color:var(--tx-invest-text){% endif %}">
         <i class="bi bi-{% if t.category %}{{ t.category.icon }}{% else %}{{ t.type_icon }}{% endif %}"></i>
       </div>
       <div class="tx-label">
@@ -67,7 +84,7 @@
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-        <div class="tx-amount" style="color:{% if t.type == 'expense' %}#E74C3C{% elif t.type == 'investment' %}#6f42c1{% else %}#2ECC71{% endif %}">
+        <div class="tx-amount" style="color:{% if t.type == 'expense' %}var(--tx-expense-text){% elif t.type == 'investment' %}var(--tx-invest-text){% else %}var(--tx-income-text){% endif %}">
           {% if t.type == 'expense' or t.type == 'investment' %}−{% else %}+{% endif %}₹{{ t.amount|floatformat:0 }}
         </div>
         <div class="dropdown">

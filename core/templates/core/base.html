@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="{{ theme_mode|default:'light' }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -10,19 +10,65 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
-    --primary: #5C6BC0;
-    --primary-dark: #3949AB;
-    --bg: #F4F5FA;
-    --surface: #ffffff;
-    --text: #1C1C2E;
-    --muted: #8A8FA8;
-    --border: #EBEBF0;
-    --bottom-nav: 64px;
-    --sidebar-w: 230px;
+    --primary: #2563EB;
+    --primary-dark: #1D4ED8;
+    --bg: #F8FAFC;
+    --surface: #FFFFFF;
+    --text: #0F172A;
+    --muted: #64748B;
+    --border: #E2E8F0;
+    --bottom-nav: 72px;
+    --sidebar-w: 240px;
+    
+    /* Theme-aware transaction colors */
+    --tx-income-bg: #F0FFF4;
+    --tx-income-text: #2ECC71;
+    --tx-expense-bg: #FFF0F0;
+    --tx-expense-text: #E74C3C;
+    --tx-invest-bg: #F3F0FF;
+    --tx-invest-text: #6f42c1;
+
+    /* Theme-aware alert colors */
+    --alert-info-bg: #EEF2FF; --alert-info-text: #3949AB;
+    --alert-warn-bg: #FFF8E1; --alert-warn-text: #E65100;
+    --alert-danger-bg: #FFF0F0; --alert-danger-text: #C62828;
+    --alert-success-bg: #F0FFF4; --alert-success-text: #1B5E20;
+    
+    --icon-hover: #E8EAF6;
+    --glass-card-bg: rgba(255, 255, 255, 0.14);
+    --glass-card-border: rgba(255, 255, 255, 0.32);
+    --glass-card-highlight: rgba(255, 255, 255, 0.20);
+    --glass-shadow: 0 10px 30px rgba(15, 23, 42, 0.10), 0 2px 10px rgba(15, 23, 42, 0.05);
   }
+
+  [data-bs-theme="dark"] {
+    --primary: #3B82F6;
+    --primary-dark: #2563EB;
+    --bg: #0F172A;
+    --surface: #162235;
+    --text: #F8FAFC;
+    --muted: #94A3B8;
+    --border: #2E3B52;
+
+    --tx-income-bg: rgba(46, 204, 113, 0.15);
+    --tx-expense-bg: rgba(231, 76, 60, 0.15);
+    --tx-invest-bg: rgba(111, 66, 193, 0.15);
+
+    --alert-info-bg: rgba(57, 73, 171, 0.2); --alert-info-text: #9FA8DA;
+    --alert-warn-bg: rgba(230, 81, 0, 0.2); --alert-warn-text: #FFCC80;
+    --alert-danger-bg: rgba(198, 40, 40, 0.2); --alert-danger-text: #EF9A9A;
+    --alert-success-bg: rgba(27, 94, 32, 0.2); --alert-success-text: #A5D6A7;
+    --icon-hover: #2D3748;
+    --glass-card-bg: rgba(22, 34, 53, 0.22);
+    --glass-card-border: rgba(255, 255, 255, 0.16);
+    --glass-card-highlight: rgba(255, 255, 255, 0.10);
+    --glass-shadow: 0 16px 36px rgba(2, 8, 23, 0.42), 0 3px 14px rgba(2, 8, 23, 0.3);
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     background: var(--bg);
+    background-image: radial-gradient(circle at 10% -10%, rgba(59,130,246,.26), transparent 38%), radial-gradient(circle at 100% 0%, rgba(56,189,248,.18), transparent 34%), linear-gradient(160deg, rgba(255,255,255,.18), rgba(255,255,255,0));
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 15px;
@@ -31,59 +77,37 @@
   }
 
   /* ── Sidebar ── */
-  .sidebar {
-    display: none;
-    position: fixed; left: 0; top: 0; bottom: 0;
-    width: var(--sidebar-w);
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    flex-direction: column;
-    padding: 0;
-    z-index: 200;
-    overflow-y: auto;
-  }
-  .sidebar-brand {
-    display: flex; align-items: center; gap: 10px;
-    padding: 24px 20px 20px;
-    font-size: 1.1rem; font-weight: 800; color: var(--primary);
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 8px;
-  }
-  .sidebar a {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 20px;
-    color: var(--muted);
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border-left: 3px solid transparent;
-    transition: color .15s, background .15s;
-  }
-  .sidebar a:hover { background: var(--bg); color: var(--text); }
-  .sidebar a.active { color: var(--primary); background: rgba(92,107,192,.07); border-left-color: var(--primary); font-weight: 600; }
-  .sidebar a i { font-size: 1rem; width: 18px; text-align: center; }
-  .sidebar-footer { margin-top: auto; border-top: 1px solid var(--border); padding: 8px 0; }
-
   /* ── Topbar ── */
   .topbar {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 20px;
-    height: 56px;
+    background: color-mix(in srgb, var(--surface) 70%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+    padding: 0 24px;
+    height: 64px;
     display: flex; align-items: center; justify-content: space-between;
     position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
   }
   .topbar-brand { color: var(--primary); font-weight: 800; font-size: 1.1rem; text-decoration: none; display: flex; align-items: center; gap: 8px; }
   .topbar-page { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+  .topbar-nav { display: none; align-items: center; gap: 8px; }
+  .topbar-nav a {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    text-decoration: none; color: var(--muted); font-size: 1rem;
+    transition: background .15s, color .15s, transform .15s;
+  }
+  .topbar-nav a:hover { background: var(--icon-hover); color: var(--text); transform: translateY(-1px); }
+  .topbar-nav a.active { color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
   .topbar-actions { display: flex; align-items: center; gap: 10px; }
   .icon-btn {
     width: 34px; height: 34px; border-radius: 8px;
-    background: var(--bg); border: none; color: var(--muted);
+    background: color-mix(in srgb, var(--bg) 92%, #ffffff 8%); border: none; color: var(--muted);
     display: flex; align-items: center; justify-content: center;
     font-size: 1rem; cursor: pointer; text-decoration: none;
     transition: background .15s, color .15s;
   }
-  .icon-btn:hover { background: #E8EAF6; color: var(--primary); }
+  .icon-btn:hover { background: var(--icon-hover); color: var(--primary); box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 25%, transparent) inset; }
 
   /* ── Bottom nav ── */
   .bottom-nav {
@@ -93,15 +117,17 @@
     display: flex;
     z-index: 100;
     height: var(--bottom-nav);
+    box-shadow: 0 -8px 24px rgba(2, 8, 23, 0.18);
   }
   .bottom-nav a {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 3px; text-decoration: none;
+    gap: 4px; text-decoration: none;
     color: var(--muted);
-    font-size: 0.65rem; font-weight: 500;
-    transition: color .15s;
+    font-size: 0.7rem; font-weight: 500;
+    transition: color .2s;
+    padding: 8px 0;
   }
-  .bottom-nav a i { font-size: 1.25rem; }
+  .bottom-nav a i { font-size: 1.4rem; }
   .bottom-nav a.active { color: var(--primary); }
 
   /* ── Page wrapper ── */
@@ -109,11 +135,28 @@
 
   /* ── Cards ── */
   .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    margin-bottom: 16px;
+    background: var(--glass-card-bg);
+    border: 1px solid var(--glass-card-border);
+    border-radius: 16px;
+    margin-bottom: 20px;
     overflow: hidden;
+    box-shadow: var(--glass-shadow), 0 1px 0 rgba(255,255,255,0.22) inset;
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    position: relative;
+    isolation: isolate;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(145deg, var(--glass-card-highlight) 0%, rgba(255,255,255,0.08) 38%, rgba(255,255,255,0.01) 100%);
+    z-index: 0;
+  }
+  .card > * {
+    position: relative;
+    z-index: 1;
   }
   .card-p { padding: 18px 20px; }
   .card-hd {
@@ -121,18 +164,21 @@
     font-size: 0.8rem; font-weight: 700;
     text-transform: uppercase; letter-spacing: .5px;
     color: var(--muted);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--glass-card-border);
     display: flex; align-items: center; justify-content: space-between;
   }
   .card-hd a { font-size: 0.78rem; font-weight: 600; color: var(--primary); text-decoration: none; text-transform: none; letter-spacing: 0; }
 
   /* ── Stat tiles ── */
-  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
   .stat-tile {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px;
+    background: var(--glass-card-bg);
+    border: 1px solid var(--glass-card-border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--glass-shadow), 0 1px 0 rgba(255,255,255,0.24) inset;
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
   }
   .stat-tile .label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 6px; }
   .stat-tile .value { font-size: 1.35rem; font-weight: 800; color: var(--text); letter-spacing: -.5px; }
@@ -142,6 +188,32 @@
   .stat-tile.accent-blue { border-left: 3px solid var(--primary); }
   .stat-tile.accent-purple { border-left: 3px solid #6f42c1; }
   .stat-tile.accent-teal { border-left: 3px solid #0dcaf0; }
+  .summary-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .summary-metric {
+    border: 1px solid var(--glass-card-border);
+    border-radius: 14px;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset;
+  }
+  .summary-metric .label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .summary-metric .value { font-size: 1.35rem; font-weight: 800; letter-spacing: -.5px; color: var(--text); }
+  .summary-metric .sub { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
+  .summary-metric.accent-green { border-left: 3px solid #2ECC71; }
+  .summary-metric.accent-red { border-left: 3px solid #E74C3C; }
+  .summary-metric.accent-blue { border-left: 3px solid var(--primary); }
+  .summary-metric.accent-purple { border-left: 3px solid #6f42c1; }
 
   /* ── Transaction row ── */
   .tx-row { display: flex; align-items: center; padding: 13px 20px; border-bottom: 1px solid var(--border); }
@@ -163,21 +235,22 @@
   .form-label { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 6px; display: block; }
   .form-control, .form-select {
     border: 1.5px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
+    border-radius: 12px;
+    padding: 12px 14px;
     font-size: 0.9rem;
-    background: var(--bg);
+    background: color-mix(in srgb, var(--bg) 88%, var(--surface) 12%);
     color: var(--text);
     width: 100%;
-    transition: border-color .15s;
+    transition: border-color .2s, box-shadow .2s;
   }
-  .form-control:focus, .form-select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(92,107,192,.12); background: var(--surface); }
+  .form-control:focus, .form-select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,.12); background: var(--surface); }
+  [data-bs-theme="dark"] .form-control:focus, [data-bs-theme="dark"] .form-select:focus { box-shadow: 0 0 0 3px rgba(59,130,246,.26); }
   .form-control-color { padding: 4px; height: 40px; width: 56px; }
 
   /* ── Buttons ── */
-  .btn { border-radius: 10px; font-weight: 600; font-size: 0.875rem; padding: 9px 18px; border: none; cursor: pointer; transition: all .15s; }
+  .btn { border-radius: 12px; font-weight: 600; font-size: 0.875rem; padding: 10px 20px; border: none; cursor: pointer; transition: all .2s; }
   .btn-primary { background: var(--primary); color: white; }
-  .btn-primary:hover { background: var(--primary-dark); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); color: white; box-shadow: 0 8px 18px rgba(37,99,235,.28); }
   .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
   .btn-outline:hover { background: var(--bg); }
   .btn-ghost { background: transparent; color: var(--muted); padding: 6px 10px; }
@@ -187,11 +260,11 @@
   .btn-pill { border-radius: 100px; }
 
   /* ── Alerts ── */
-  .alert { border-radius: 12px; padding: 12px 16px; font-size: 0.875rem; margin-bottom: 12px; border: none; }
-  .alert-info { background: #EEF2FF; color: #3949AB; }
-  .alert-warning { background: #FFF8E1; color: #E65100; }
-  .alert-danger { background: #FFF0F0; color: #C62828; }
-  .alert-success { background: #F0FFF4; color: #1B5E20; }
+  .alert { border-radius: 12px; padding: 14px 18px; font-size: 0.875rem; margin-bottom: 16px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .alert-info { background: var(--alert-info-bg); color: var(--alert-info-text); }
+  .alert-warning { background: var(--alert-warn-bg); color: var(--alert-warn-text); }
+  .alert-danger { background: var(--alert-danger-bg); color: var(--alert-danger-text); }
+  .alert-success { background: var(--alert-success-bg); color: var(--alert-success-text); }
 
   /* ── Divider row ── */
   .row-item { display: flex; align-items: center; justify-content: space-between; padding: 13px 20px; border-bottom: 1px solid var(--border); }
@@ -199,7 +272,23 @@
 
   /* ── Misc ── */
   .section-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin: 20px 0 8px; }
-  .fab { position: fixed; bottom: calc(var(--bottom-nav) + 16px); right: 20px; width: 52px; height: 52px; border-radius: 50%; background: var(--primary); color: white; border: none; font-size: 1.4rem; box-shadow: 0 4px 20px rgba(92,107,192,.4); display: flex; align-items: center; justify-content: center; z-index: 90; text-decoration: none; }
+  .fab { position: fixed; bottom: calc(var(--bottom-nav) + 20px); right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: white; border: none; font-size: 1.5rem; box-shadow: 0 4px 20px rgba(37,99,235,0.4); display: flex; align-items: center; justify-content: center; z-index: 90; text-decoration: none; transition: all .2s; }
+  [data-bs-theme="dark"] .fab { box-shadow: 0 10px 26px rgba(37,99,235,0.55); }
+  [data-bs-theme="dark"] .dropdown-menu,
+  [data-bs-theme="dark"] .offcanvas,
+  [data-bs-theme="dark"] .modal-content {
+    background: color-mix(in srgb, var(--surface) 92%, #0b1220 8%);
+    border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+    box-shadow: 0 16px 36px rgba(2, 8, 23, 0.45);
+    color: var(--text);
+  }
+  [data-bs-theme="dark"] .dropdown-item { color: var(--text); }
+  [data-bs-theme="dark"] .dropdown-item:hover,
+  [data-bs-theme="dark"] .dropdown-item:focus { background: color-mix(in srgb, var(--primary) 14%, transparent); color: #dbeafe; }
+  [data-bs-theme="dark"] .dropdown-divider { border-top-color: var(--border); }
+  [data-bs-theme="dark"] .btn-close { filter: invert(1) grayscale(100%) brightness(200%); opacity: .8; }
+  [data-bs-theme="dark"] .offcanvas-backdrop.show,
+  [data-bs-theme="dark"] .modal-backdrop.show { opacity: .7; }
   .badge-pill { padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
   .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
   .empty-state i { font-size: 2.5rem; opacity: .4; display: block; margin-bottom: 12px; }
@@ -207,11 +296,11 @@
 
   /* ── Desktop ── */
   @media (min-width: 768px) {
-    body { padding-bottom: 0; padding-left: var(--sidebar-w); }
+    body { padding-bottom: 0; padding-left: 0; }
     .bottom-nav { display: none; }
-    .sidebar { display: flex; }
     .topbar-brand { display: none; }
-    .fab { bottom: 28px; }
+    .topbar-nav { display: flex; }
+    .fab { bottom: 32px; }
   }
 </style>
 {% block extra_css %}{% endblock %}
@@ -219,29 +308,18 @@
 <body>
 
 {% if user.is_authenticated %}
-<nav class="sidebar">
-  <div class="sidebar-brand"><i class="bi bi-wallet2"></i> BudgetIQ</div>
-  <a href="/" class="{% if request.path == '/' %}active{% endif %}"><i class="bi bi-house"></i> Overview</a>
-  <a href="/transactions/" class="{% if '/transactions' in request.path %}active{% endif %}"><i class="bi bi-arrow-left-right"></i> Transactions</a>
-  <a href="/analytics/" class="{% if '/analytics' in request.path %}active{% endif %}"><i class="bi bi-bar-chart"></i> Analytics</a>
-  <a href="/investments/" class="{% if '/investments' in request.path %}active{% endif %}"><i class="bi bi-graph-up-arrow"></i> Investments</a>
-  <a href="/summary/" class="{% if '/summary' in request.path %}active{% endif %}"><i class="bi bi-clipboard2-data"></i> Summary</a>
-  <a href="/subscriptions/" class="{% if '/subscriptions' in request.path %}active{% endif %}"><i class="bi bi-repeat"></i> Subscriptions</a>
-  <a href="/savings/" class="{% if '/savings' in request.path %}active{% endif %}"><i class="bi bi-piggy-bank"></i> Savings</a>
-  <a href="/limits/" class="{% if '/limits' in request.path %}active{% endif %}"><i class="bi bi-speedometer2"></i> Limits</a>
-  <a href="/categories/" class="{% if '/categories' in request.path %}active{% endif %}"><i class="bi bi-tags"></i> Categories</a>
-  <a href="/upload/" class="{% if '/upload' in request.path %}active{% endif %}"><i class="bi bi-upload"></i> Import PDF</a>
-  <div class="sidebar-footer">
-    <a href="/settings/" class="{% if '/settings' in request.path %}active{% endif %}"><i class="bi bi-gear"></i> Settings</a>
-    <a href="/logout/" style="color:#E74C3C !important"><i class="bi bi-box-arrow-right"></i> Logout</a>
-  </div>
-</nav>
-
 <div class="topbar">
   <a href="/" class="topbar-brand d-md-none"><i class="bi bi-wallet2"></i> BudgetIQ</a>
-  <span class="topbar-page d-none d-md-block">{% block page_title %}{% endblock %}</span>
+  <nav class="topbar-nav" aria-label="Primary">
+    <a href="/" class="{% if request.path == '/' %}active{% endif %}" title="Overview"><i class="bi bi-house"></i></a>
+    <a href="/savings/" class="{% if '/savings' in request.path %}active{% endif %}" title="Savings"><i class="bi bi-piggy-bank"></i></a>
+    <a href="/limits/" class="{% if '/limits' in request.path %}active{% endif %}" title="Limits"><i class="bi bi-speedometer2"></i></a>
+    <a href="/categories/" class="{% if '/categories' in request.path %}active{% endif %}" title="Categories"><i class="bi bi-tags"></i></a>
+    <a href="/upload/" class="{% if '/upload' in request.path %}active{% endif %}" title="Import PDF"><i class="bi bi-upload"></i></a>
+  </nav>
+  <div class="ms-auto d-none d-md-block">{% block period_selector %}{% endblock %}</div>
   <div class="topbar-actions">
-    <a href="/upload/" class="icon-btn" title="Import PDF"><i class="bi bi-upload"></i></a>
+    <a href="/upload/" class="icon-btn d-md-none" title="Import PDF"><i class="bi bi-upload"></i></a>
     <div class="dropdown">
       <button class="icon-btn" data-bs-toggle="dropdown"><i class="bi bi-person"></i></button>
       <ul class="dropdown-menu dropdown-menu-end" style="border-radius:12px; border:1px solid var(--border); font-size:.875rem;">
@@ -274,7 +352,7 @@
   <a href="/transactions/" class="{% if '/transactions' in request.path %}active{% endif %}"><i class="bi bi-arrow-left-right"></i>Txns</a>
   <a href="/analytics/" class="{% if '/analytics' in request.path %}active{% endif %}"><i class="bi bi-bar-chart-fill"></i>Charts</a>
   <a href="/investments/" class="{% if '/investments' in request.path %}active{% endif %}"><i class="bi bi-graph-up-arrow"></i>Invest</a>
-  <a href="#" data-bs-toggle="offcanvas" data-bs-target="#moreMenu" class="{% if '/savings' in request.path or '/subscriptions' in request.path or '/limits' in request.path or '/categories' in request.path or '/summary' in request.path or '/upload' in request.path %}active{% endif %}">
+  <a href="#" data-bs-toggle="offcanvas" data-bs-target="#moreMenu" class="{% if '/savings' in request.path or '/subscriptions' in request.path or '/limits' in request.path or '/categories' in request.path or '/upload' in request.path %}active{% endif %}">
     <i class="bi bi-grid-fill"></i>More
   </a>
 </nav>
@@ -286,13 +364,9 @@
   </div>
   <div class="offcanvas-body pt-2">
     <div class="row g-2">
-      {% for href, icon, label, color in menu_extras %}{% endfor %}
-      <div class="col-4"><a href="/summary/" class="text-decoration-none d-flex flex-column align-items-center p-3 rounded-3" style="background:var(--bg)"><i class="bi bi-clipboard2-data" style="font-size:1.6rem;color:var(--primary)"></i><span style="font-size:.72rem;font-weight:600;margin-top:6px">Summary</span></a></div>
-      <div class="col-4"><a href="/subscriptions/" class="text-decoration-none d-flex flex-column align-items-center p-3 rounded-3" style="background:var(--bg)"><i class="bi bi-repeat" style="font-size:1.6rem;color:#0dcaf0"></i><span style="font-size:.72rem;font-weight:600;margin-top:6px">Subscriptions</span></a></div>
-      <div class="col-4"><a href="/savings/" class="text-decoration-none d-flex flex-column align-items-center p-3 rounded-3" style="background:var(--bg)"><i class="bi bi-piggy-bank" style="font-size:1.6rem;color:#2ECC71"></i><span style="font-size:.72rem;font-weight:600;margin-top:6px">Savings</span></a></div>
-      <div class="col-4"><a href="/limits/" class="text-decoration-none d-flex flex-column align-items-center p-3 rounded-3" style="background:var(--bg)"><i class="bi bi-speedometer2" style="font-size:1.6rem;color:#F39C12"></i><span style="font-size:.72rem;font-weight:600;margin-top:6px">Limits</span></a></div>
-      <div class="col-4"><a href="/categories/" class="text-decoration-none d-flex flex-column align-items-center p-3 rounded-3" style="background:var(--bg)"><i class="bi bi-tags" style="font-size:1.6rem;color:#6f42c1"></i><span style="font-size:.72rem;font-weight:600;margin-top:6px">Categories</span></a></div>
-      <div class="col-4"><a href="/upload/" class="text-decoration-none d-flex flex-column align-items-center p-3 rounded-3" style="background:var(--bg)"><i class="bi bi-upload" style="font-size:1.6rem;color:var(--primary)"></i><span style="font-size:.72rem;font-weight:600;margin-top:6px">Import PDF</span></a></div>
+      {% for href, icon, label, color in more_items %}
+      <div class="col-4"><a href="{{ href }}" class="text-decoration-none d-flex flex-column align-items-center p-3 rounded-3" style="background:var(--bg)"><i class="bi bi-{{ icon }}" style="font-size:1.6rem;color:{{ color }}"></i><span style="font-size:.72rem;font-weight:600;margin-top:6px">{{ label }}</span></a></div>
+      {% endfor %}
     </div>
   </div>
 </div>

@@ -56,23 +56,23 @@ for name, has_mat, has_rate, icon in inv_types:
 
 # --- Categories ---
 categories_data = [
-    ('Food & Dining', '#FF6B35', 'any', 'bag-heart', False),
-    ('Transport', '#4ECDC4', 'expense', 'car-front', False),
-    ('Shopping', '#45B7D1', 'expense', 'cart3', False),
-    ('Entertainment', '#96CEB4', 'expense', 'film', False),
-    ('Utilities', '#FFEAA7', 'expense', 'lightning-charge', False),
-    ('Health', '#DDA0DD', 'expense', 'heart-pulse', False),
-    ('Education', '#98D8C8', 'expense', 'book', False),
-    ('Travel', '#F7DC6F', 'expense', 'airplane', False),
-    ('Groceries', '#82E0AA', 'expense', 'basket', False),
-    ('Personal Care', '#F1948A', 'expense', 'person-heart', False),
-    ('Salary', '#2ECC71', 'income', 'briefcase', False),
-    ('Freelance', '#3498DB', 'income', 'laptop', False),
-    ('Dividends', '#9B59B6', 'income', 'cash-stack', False),
-    ('Investments', '#6f42c1', 'investment', 'graph-up-arrow', False),
-    ('Streaming', '#E74C3C', 'expense', 'play-circle', True),
-    ('Cloud Services', '#3498DB', 'expense', 'cloud', True),
-    ('Personal Transfer', '#95A5A6', 'expense', 'person-lines-fill', False),
+    ('Food & Dining', '#f97316', 'any', 'bag-heart', False),     # Orange-500
+    ('Transport', '#06b6d4', 'expense', 'car-front', False),     # Cyan-500
+    ('Shopping', '#ec4899', 'expense', 'cart3', False),         # Pink-500
+    ('Entertainment', '#8b5cf6', 'expense', 'film', False),     # Violet-500
+    ('Utilities', '#eab308', 'expense', 'lightning-charge', False), # Amber-500
+    ('Health', '#f43f5e', 'expense', 'heart-pulse', False),     # Rose-500
+    ('Education', '#6366f1', 'expense', 'book', False),         # Indigo-500
+    ('Travel', '#14b8a6', 'expense', 'airplane', False),        # Teal-500
+    ('Groceries', '#22c55e', 'expense', 'basket', False),       # Emerald-500
+    ('Personal Care', '#d946ef', 'expense', 'person-heart', False), # Fuchsia-500
+    ('Salary', '#10b981', 'income', 'briefcase', False),        # Emerald-500
+    ('Freelance', '#3b82f6', 'income', 'laptop', False),        # Blue-500
+    ('Dividends', '#a855f7', 'income', 'cash-stack', False),    # Purple-500
+    ('Investments', '#4f46e5', 'investment', 'graph-up-arrow', False), # Indigo-600
+    ('Streaming', '#be123c', 'expense', 'play-circle', True),   # Rose-700
+    ('Cloud Services', '#0284c7', 'expense', 'cloud', True),    # Sky-700
+    ('Personal Transfer', '#475569', 'expense', 'person-lines-fill', False), # Slate-600
 ]
 created_cats = {}
 for name, color, ctype, icon, is_sub in categories_data:
@@ -94,4 +94,3 @@ for name, has_mat, has_rate, icon in inv_types:
         user=admin_user, name=name,
         defaults={'has_maturity': has_mat, 'has_interest_rate': has_rate, 'icon': icon}
     )
-

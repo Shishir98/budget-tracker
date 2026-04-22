@@ -13,8 +13,8 @@ import datetime
 
 # --- Create users ---
 users_data = [
-    ('admin', 'admin123', True),
-    ('demo', 'demo123', False),
+    ('Shishir', 'admin123', True),
+    ('Kritka', 'admin123', True),
 ]
 created_users = []
 for uname, pwd, is_super in users_data:

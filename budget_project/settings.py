@@ -40,6 +40,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.theme_settings',
+                'core.context_processors.more_menu',
             ],
         },
     },

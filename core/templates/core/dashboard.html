@@ -1,0 +1,195 @@
+{% extends 'core/base.html' %}
+{% block title %}Overview — BudgetIQ{% endblock %}
+{% block page_title %}Overview{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  <!-- Period -->
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+    <div>
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Budget Period</div>
+      <div style="font-weight:600;margin-top:2px">{{ period_start|date:"d M" }} — {{ period_end|date:"d M Y" }}</div>
+    </div>
+    {% if unlabeled > 0 %}
+    <a href="/transactions/?unlabeled=1" style="background:#FFF8E1;color:#E65100;padding:6px 12px;border-radius:20px;font-size:.75rem;font-weight:700;text-decoration:none;">
+      {{ unlabeled }} unlabeled
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-tile accent-green">
+      <div class="label">Income</div>
+      <div class="value">₹{{ stats.income|floatformat:0 }}</div>
+    </div>
+    <div class="stat-tile accent-red">
+      <div class="label">Expenses</div>
+      <div class="value">₹{{ stats.expense|floatformat:0 }}</div>
+    </div>
+    <div class="stat-tile accent-blue">
+      <div class="label">Net Savings</div>
+      <div class="value">₹{{ stats.savings|floatformat:0 }}</div>
+      <div class="sub">{{ stats.savings_rate }}% savings rate</div>
+    </div>
+    <div class="stat-tile accent-purple">
+      <div class="label">Invested</div>
+      <div class="value">₹{{ stats.investment|floatformat:0 }}</div>
+    </div>
+  </div>
+
+  <!-- Savings rate bar -->
+  {% if stats.income > 0 %}
+  <div style="margin-bottom:16px;">
+    <div class="pbar-wrap">
+      <div class="pbar" style="width:{{ stats.savings_rate }}%; background:#2ECC71;"></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Over-budget alerts -->
+  {% for a in over_budget %}
+  <div class="alert alert-danger d-flex align-items-center gap-2 mb-2">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <span><strong>{{ a.label }}</strong> over budget — ₹{{ a.spent|floatformat:0 }} / ₹{{ a.limit|floatformat:0 }}</span>
+    <a href="/limits/" class="ms-auto" style="color:inherit"><i class="bi bi-arrow-right"></i></a>
+  </div>
+  {% endfor %}
+
+  <!-- Budget limits -->
+  {% if alerts %}
+  <div class="card">
+    <div class="card-hd">Budget Limits <a href="/limits/">View all</a></div>
+    <div class="card-p">
+      {% for a in alerts|slice:":4" %}
+      <div style="margin-bottom:{% if not forloop.last %}14px{% else %}0{% endif %}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+          <span style="font-size:.875rem;font-weight:500;">{{ a.label }}</span>
+          <span style="font-size:.8rem;font-weight:700;color:{% if a.over %}#E74C3C{% elif a.warning %}#F39C12{% else %}var(--muted){% endif %}">
+            ₹{{ a.spent|floatformat:0 }} / ₹{{ a.limit|floatformat:0 }}
+          </span>
+        </div>
+        <div class="pbar-wrap">
+          <div class="pbar" style="width:{{ a.pct }}%; background:{% if a.over %}#E74C3C{% elif a.warning %}#F39C12{% else %}#2ECC71{% endif %};"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Portfolio -->
+  {% if total_invested > 0 %}
+  <div class="card">
+    <div class="card-p" style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px;">Portfolio</div>
+        <div style="font-size:1.25rem;font-weight:800;">₹{{ total_current|floatformat:0 }}</div>
+        <div style="font-size:.78rem;color:{% if portfolio_gain >= 0 %}#2ECC71{% else %}#E74C3C{% endif %};margin-top:2px;">
+          {% if portfolio_gain >= 0 %}+{% endif %}₹{{ portfolio_gain|floatformat:0 }} vs invested
+        </div>
+      </div>
+      <a href="/investments/" class="btn btn-outline btn-sm">View →</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Upcoming subscriptions -->
+  {% if upcoming_subs %}
+  <div class="card">
+    <div class="card-hd">Due Soon <a href="/subscriptions/">All</a></div>
+    {% for s in upcoming_subs %}
+    <div class="row-item">
+      <span style="font-weight:500;font-size:.875rem;">{{ s.name }}</span>
+      <div style="text-align:right;">
+        <div style="font-weight:700;font-size:.875rem;">₹{{ s.amount }}</div>
+        <div style="font-size:.72rem;color:var(--muted);">{{ s.next_billing_date|date:"d M" }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Recent Transactions -->
+  <div class="card">
+    <div class="card-hd">Recent Transactions <a href="/transactions/">See all</a></div>
+    {% for t in recent_txns %}
+    <div class="tx-row">
+      <div class="tx-icon" style="background:{% if t.type == 'income' or t.type == 'side_income' %}#F0FFF4;color:#2ECC71{% elif t.type == 'expense' %}#FFF0F0;color:#E74C3C{% else %}#F3F0FF;color:#6f42c1{% endif %}">
+        <i class="bi bi-{% if t.category %}{{ t.category.icon }}{% else %}{{ t.type_icon }}{% endif %}"></i>
+      </div>
+      <div class="tx-label">
+        <div class="name">{{ t.notes|default:t.raw_description|default:t.get_type_display|truncatechars:34 }}</div>
+        <div class="meta">
+          {{ t.date|date:"d M" }}
+          {% if t.category %}&nbsp;·&nbsp;<span style="color:{{ t.category.color }}">{{ t.category.name }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="tx-amount" style="color:{% if t.type == 'expense' %}#E74C3C{% elif t.type == 'investment' %}#6f42c1{% else %}#2ECC71{% endif %}">
+        {% if t.type == 'expense' or t.type == 'investment' %}−{% else %}+{% endif %}₹{{ t.amount|floatformat:0 }}
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <p>No transactions yet</p>
+      <a href="/transactions/add/" class="btn btn-primary btn-sm" style="margin-top:12px">Add first transaction</a>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- Quick Add Trigger -->
+<button type="button" class="fab" data-bs-toggle="modal" data-bs-target="#quickAddModal" style="border:none;">
+  <i class="bi bi-plus"></i>
+</button>
+
+<!-- Quick Add Modal (The Big Card) -->
+<div class="modal fade" id="quickAddModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+      <div class="modal-header" style="border-bottom: 1px solid var(--border); padding: 20px;">
+        <h5 class="modal-title" style="font-weight: 700;">Quick Add Transaction</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <form method="post" action="/transactions/add/">
+          {% csrf_token %}
+          {% for field in transaction_form %}
+            <div style="margin-bottom: 16px; {% if field.name == 'investment_type' %}display:none;{% endif %}" {% if field.name == 'investment_type' %}id="div_id_investment_type_modal"{% endif %}>
+              <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--muted);">{{ field.label }}</label>
+              {{ field }}
+            </div>
+          {% endfor %}
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px;">
+            <button type="submit" class="btn btn-primary">Save Transaction</button>
+            <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('quickAddModal');
+    // Get elements for the modal transaction form
+    const categorySelect = modal.querySelector('#id_category');
+    const investmentTypeDiv = modal.querySelector('#div_id_investment_type_modal');
+    // Pass the investment category PK as a number or null
+    const investmentCategoryPk = {{ investment_category_pk|default:"null" }};
+
+    if (categorySelect && investmentTypeDiv) {
+        categorySelect.addEventListener('change', () => {
+            // Compare the selected category value (string) with the investment category PK (number or null)
+            investmentTypeDiv.style.display = (categorySelect.value == investmentCategoryPk) ? 'block' : 'none';
+        });
+    }
+});
+</script>
+{% endblock %}

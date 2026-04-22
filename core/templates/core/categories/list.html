@@ -1,0 +1,71 @@
+{% extends 'core/base.html' %}
+{% block title %}Categories — BudgetIQ{% endblock %}
+{% block page_title %}Categories{% endblock %}
+{% block content %}
+<div class="page">
+
+  <!-- Add form -->
+  <div class="card">
+    <div class="card-hd">New Category</div>
+    <div class="card-p">
+      <form method="post">
+        {% csrf_token %}
+        <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:10px;align-items:end;">
+          <div>
+            <label class="form-label">Name</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. Groceries" required>
+          </div>
+          <div>
+            <label class="form-label">Color</label>
+            <input type="color" name="color" class="form-control form-control-color" value="#5C6BC0">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div>
+            <label class="form-label">Type</label>
+            <select name="type" class="form-select">
+              <option value="any">Any</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+              <option value="investment">Investment</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Icon</label>
+            <input type="text" name="icon" class="form-control" placeholder="e.g. cart, phone" value="tag">
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <input type="checkbox" name="is_subscription" id="is_sub" class="form-check-input" style="width:16px;height:16px;">
+          <label for="is_sub" style="font-size:.875rem;margin:0;">Subscription category</label>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Add Category</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- List -->
+  <div class="card">
+    {% for cat in categories %}
+    <div class="row-item">
+      <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+        <div style="width:10px;height:10px;border-radius:50%;background:{{ cat.color }};flex-shrink:0;"></div>
+        <i class="bi bi-{{ cat.icon }}" style="color:{{ cat.color }};font-size:1rem;flex-shrink:0;"></i>
+        <span style="font-weight:500;font-size:.9rem;">{{ cat.name }}</span>
+        <span style="font-size:.7rem;color:var(--muted);background:var(--bg);padding:2px 8px;border-radius:20px;">{{ cat.get_type_display }}</span>
+        {% if cat.is_subscription %}<span style="font-size:.7rem;color:#0dcaf0;background:#E0F7FA;padding:2px 8px;border-radius:20px;">Sub</span>{% endif %}
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+        <a href="/categories/{{ cat.pk }}/edit/" class="btn btn-ghost" title="Edit"><i class="bi bi-pencil" style="font-size:.85rem;"></i></a>
+        <form method="post" action="/categories/{{ cat.pk }}/delete/" onsubmit="return confirm('Delete \'{{ cat.name }}\'?')">
+          {% csrf_token %}<button type="submit" class="btn btn-danger-ghost" title="Delete"><i class="bi bi-trash" style="font-size:.85rem;"></i></button>
+        </form>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state"><i class="bi bi-tags"></i><p>No categories yet</p></div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

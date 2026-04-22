@@ -1,0 +1,188 @@
+{% extends 'core/base.html' %}
+{% block title %}Savings — BudgetIQ{% endblock %}
+{% block page_title %}Savings{% endblock %}
+{% block content %}
+<div class="page">
+
+  <!-- Period breakdown -->
+  <div class="card">
+    <div class="card-hd">{{ period_start|date:"d M" }} — {{ period_end|date:"d M Y" }}</div>
+    <div class="card-p">
+      <div class="row-item" style="padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--muted);font-size:.875rem;">Total Income</span>
+        <span style="font-weight:700;color:#2ECC71;">+₹{{ stats.income|floatformat:0 }}</span>
+      </div>
+      <div class="row-item" style="padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--muted);font-size:.875rem;">Total Expenses</span>
+        <span style="font-weight:700;color:#E74C3C;">−₹{{ stats.expense|floatformat:0 }}</span>
+      </div>
+      <div class="row-item" style="padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--muted);font-size:.875rem;">Investments</span>
+        <span style="font-weight:700;color:#6f42c1;">−₹{{ stats.investment|floatformat:0 }}</span>
+      </div>
+      <div class="row-item" style="padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--muted);font-size:.875rem;">Subscriptions / mo</span>
+        <span style="font-weight:700;color:#F39C12;">−₹{{ monthly_subs|floatformat:0 }}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px;">
+        <span style="font-weight:700;">Net Savings</span>
+        <span style="font-size:1.3rem;font-weight:800;color:{% if stats.savings >= 0 %}#2ECC71{% else %}#E74C3C{% endif %};">
+          ₹{{ stats.savings|floatformat:0 }}
+        </span>
+      </div>
+      <div class="pbar-wrap">
+        <div class="pbar" style="width:{{ stats.savings_rate }}%;background:#2ECC71;"></div>
+      </div>
+      <div style="font-size:.75rem;color:var(--muted);text-align:center;margin-top:6px;">{{ stats.savings_rate }}% savings rate</div>
+    </div>
+  </div>
+
+  <!-- Savings Goal Calculator -->
+  <div class="card">
+    <div class="card-hd">Savings Goal Calculator</div>
+    <div class="card-p">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div>
+          <label class="form-label">Goal Amount (₹)</label>
+          <input type="number" id="goalAmt" class="form-control" placeholder="500000">
+        </div>
+        <div>
+          <label class="form-label">Monthly Savings (₹)</label>
+          <input type="number" id="goalSav" class="form-control" value="{{ stats.savings|floatformat:0 }}">
+        </div>
+        <div>
+          <label class="form-label">Return Rate (% p.a.)</label>
+          <input type="number" id="goalRate" class="form-control" value="7" step="0.1">
+        </div>
+        <div style="display:flex;align-items:flex-end;">
+          <button class="btn btn-primary" style="width:100%;" onclick="calcGoal()">Calculate</button>
+        </div>
+      </div>
+      <div id="goalResult"></div>
+    </div>
+  </div>
+
+  <!-- Purchase Wishlist -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);">Purchase Wishlist</div>
+    <button class="btn btn-outline btn-sm" data-bs-toggle="collapse" data-bs-target="#addPlan">+ Add</button>
+  </div>
+
+  <div class="collapse" id="addPlan">
+    <div class="card">
+      <div class="card-p">
+        <form method="post">
+          {% csrf_token %}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div style="grid-column:1/-1;">
+              <label class="form-label">Item Name</label>
+              <input type="text" name="name" class="form-control" placeholder="e.g. MacBook Pro" required>
+            </div>
+            <div>
+              <label class="form-label">Estimated Cost (₹)</label>
+              <input type="number" name="estimated_cost" class="form-control" step="0.01" required>
+            </div>
+            <div>
+              <label class="form-label">Priority</label>
+              <select name="priority" class="form-select">
+                <option value="high">High</option>
+                <option value="medium" selected>Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Target Date</label>
+              <input type="date" name="target_date" class="form-control">
+            </div>
+            <div>
+              <label class="form-label">Notes</label>
+              <input type="text" name="notes" class="form-control" placeholder="Optional">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Add to Wishlist</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% for plan in active_plans %}
+  <div class="card" style="margin-bottom:10px;">
+    <div class="card-p">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="font-weight:600;">{{ plan.name }}</span>
+            <span style="font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:20px;background:{% if plan.priority == 'high' %}#FFF0F0;color:#E74C3C{% elif plan.priority == 'medium' %}#FFF8E1;color:#E65100{% else %}#F0FFF4;color:#2ECC71{% endif %};">{{ plan.get_priority_display }}</span>
+          </div>
+          <div style="font-size:1.1rem;font-weight:800;color:var(--primary);">₹{{ plan.estimated_cost|floatformat:0 }}</div>
+          {% if plan.target_date %}<div style="font-size:.75rem;color:var(--muted);margin-top:2px;">Target: {{ plan.target_date|date:"d M Y" }}</div>{% endif %}
+          {% if plan.months_needed %}
+          <div style="font-size:.78rem;color:#2ECC71;margin-top:4px;">~{{ plan.months_needed }} months at current savings rate</div>
+          {% elif stats.savings <= 0 %}
+          <div style="font-size:.78rem;color:#E74C3C;margin-top:4px;">Increase savings to plan for this</div>
+          {% endif %}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+          <form method="post" action="/savings/plans/{{ plan.pk }}/toggle/">{% csrf_token %}
+            <button class="btn btn-outline btn-sm" title="Mark as purchased" style="color:#2ECC71;border-color:#2ECC71;"><i class="bi bi-check"></i></button>
+          </form>
+          <a href="/savings/plans/{{ plan.pk }}/edit/" class="btn btn-outline btn-sm"><i class="bi bi-pencil"></i></a>
+          <form method="post" action="/savings/plans/{{ plan.pk }}/delete/" onsubmit="return confirm('Delete?')">{% csrf_token %}
+            <button class="btn btn-outline btn-sm" style="color:#E74C3C;border-color:#E74C3C;"><i class="bi bi-trash"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="card"><div class="empty-state"><i class="bi bi-bag-heart"></i><p>No purchase plans yet</p></div></div>
+  {% endfor %}
+
+  {% if purchased_plans %}
+  <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:20px 0 10px;">Purchased</div>
+  <div class="card">
+    {% for plan in purchased_plans %}
+    <div class="row-item" style="opacity:.55;">
+      <div>
+        <s style="font-weight:500;">{{ plan.name }}</s>
+        <div style="font-size:.78rem;color:var(--muted);">₹{{ plan.estimated_cost|floatformat:0 }}</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <form method="post" action="/savings/plans/{{ plan.pk }}/toggle/">{% csrf_token %}
+          <button class="btn btn-outline btn-sm">Unmark</button>
+        </form>
+        <form method="post" action="/savings/plans/{{ plan.pk }}/delete/" onsubmit="return confirm('Delete?')">{% csrf_token %}
+          <button class="btn btn-outline btn-sm" style="color:#E74C3C;border-color:#E74C3C;"><i class="bi bi-trash"></i></button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function calcGoal() {
+  const goal = parseFloat(document.getElementById('goalAmt').value);
+  const monthly = parseFloat(document.getElementById('goalSav').value);
+  const rate = parseFloat(document.getElementById('goalRate').value) / 100 / 12;
+  const el = document.getElementById('goalResult');
+  if (!goal || isNaN(goal)) { el.innerHTML = '<div class="alert alert-warning">Enter a goal amount.</div>'; return; }
+  if (!monthly || monthly <= 0) { el.innerHTML = '<div class="alert alert-warning">Monthly savings must be positive.</div>'; return; }
+  let months, returns = 0;
+  if (!rate || rate === 0) {
+    months = Math.ceil(goal / monthly);
+  } else {
+    months = Math.ceil(Math.log(1 + (goal * rate) / monthly) / Math.log(1 + rate));
+    returns = goal - (monthly * months);
+  }
+  const years = (months / 12).toFixed(1);
+  el.innerHTML = `<div class="alert alert-success">
+    <strong>${months} months</strong> (${years} yrs) to reach ₹${goal.toLocaleString('en-IN')}
+    ${returns > 0 ? `<div style="font-size:.8rem;margin-top:4px;">Returns earned: ₹${Math.round(returns).toLocaleString('en-IN')}</div>` : ''}
+  </div>`;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends 'core/base.html' %}
+{% block title %}Summary — BudgetIQ{% endblock %}
+{% block page_title %}Summary{% endblock %}
+{% block content %}
+<div class="page">
+
+  <div style="font-size:.75rem;color:var(--muted);margin-bottom:16px;">{{ period_start|date:"d M" }} — {{ period_end|date:"d M Y" }}</div>
+
+  <!-- Stats -->
+  <div class="stats-grid" style="margin-bottom:16px;">
+    <div class="stat-tile accent-green">
+      <div class="label">Income</div>
+      <div class="value">₹{{ stats.income|floatformat:0 }}</div>
+    </div>
+    <div class="stat-tile accent-red">
+      <div class="label">Spent</div>
+      <div class="value">₹{{ stats.expense|floatformat:0 }}</div>
+    </div>
+    <div class="stat-tile accent-blue" style="grid-column:1/-1;">
+      <div class="label">Net Savings</div>
+      <div class="value">₹{{ stats.savings|floatformat:0 }}</div>
+      <div class="sub">{{ stats.savings_rate }}% savings rate</div>
+    </div>
+  </div>
+
+  <!-- Planned vs Actual -->
+  {% if limit_comparison %}
+  <div class="card">
+    <div class="card-hd">Planned vs Actual</div>
+    <div class="card-p">
+      {% for item in limit_comparison %}
+      <div style="margin-bottom:{% if not forloop.last %}18px{% else %}0{% endif %};">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+          <span style="font-weight:500;font-size:.875rem;">{{ item.label }}</span>
+          <div style="text-align:right;">
+            <span style="font-size:.8rem;font-weight:700;color:{% if item.over %}#E74C3C{% else %}var(--text){% endif %};">₹{{ item.spent|floatformat:0 }}</span>
+            <span style="font-size:.75rem;color:var(--muted);"> / ₹{{ item.planned|floatformat:0 }}</span>
+          </div>
+        </div>
+        <div class="pbar-wrap">
+          <div class="pbar" style="width:{{ item.pct }}%;background:{% if item.over %}#E74C3C{% elif item.pct > 70 %}#F39C12{% else %}#2ECC71{% endif %};"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;">
+          <span style="font-size:.72rem;color:var(--muted);">{{ item.pct|floatformat:0 }}%</span>
+          <span style="font-size:.72rem;font-weight:600;color:{% if item.remaining >= 0 %}#2ECC71{% else %}#E74C3C{% endif %};">
+            {% if item.remaining >= 0 %}₹{{ item.remaining|floatformat:0 }} left{% else %}₹{{ item.remaining|floatformat:0|slice:"1:" }} over{% endif %}
+          </span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-info">
+    Set budget limits to see planned vs actual comparison. <a href="/limits/" style="color:inherit;font-weight:700;">Set limits →</a>
+  </div>
+  {% endif %}
+
+  <!-- Month over month chart -->
+  <div class="card">
+    <div class="card-hd">Last 3 Months</div>
+    <div class="card-p">
+      <div style="height:200px;"><canvas id="momChart"></canvas></div>
+    </div>
+    <div style="border-top:1px solid var(--border);">
+      {% for m in mom %}
+      <div class="row-item">
+        <span style="font-weight:500;font-size:.875rem;color:var(--muted);">{{ m.month }}</span>
+        <div style="display:flex;gap:20px;font-size:.8rem;">
+          <span style="color:#2ECC71;font-weight:600;">+₹{{ m.income|floatformat:0 }}</span>
+          <span style="color:#E74C3C;font-weight:600;">−₹{{ m.expense|floatformat:0 }}</span>
+          <span style="font-weight:700;color:{% if m.savings >= 0 %}var(--text){% else %}#E74C3C{% endif %};">₹{{ m.savings|floatformat:0 }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+new Chart(document.getElementById('momChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ mom_labels|safe }},
+    datasets: [
+      { label: 'Income', data: {{ mom_income|safe }}, backgroundColor: 'rgba(46,204,113,.75)', borderRadius: 6, borderSkipped: false },
+      { label: 'Expense', data: {{ mom_expense|safe }}, backgroundColor: 'rgba(231,76,60,.75)', borderRadius: 6, borderSkipped: false },
+      { label: 'Savings', data: {{ mom_savings|safe }}, backgroundColor: 'rgba(92,107,192,.75)', borderRadius: 6, borderSkipped: false }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: '#F0F0F0' }, ticks: { font: { size: 11 } } },
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+</script>
+{% endblock %}

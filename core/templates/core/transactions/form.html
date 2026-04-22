@@ -1,0 +1,49 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ title }} — BudgetIQ{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="card">
+    <div class="card-p">
+      <form method="post" action="{% if obj %}/transactions/{{ obj.pk }}/edit/{% else %}/transactions/add/{% endif %}">
+        {% csrf_token %}
+        {% for field in form %}
+        <div style="margin-bottom:16px; {% if field.name == 'investment_type' %}display:none;{% endif %}" {% if field.name == 'investment_type' %}id="div_id_investment_type"{% endif %}>
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}<div style="color:#E74C3C;font-size:.78rem;margin-top:4px;">{{ field.errors }}</div>{% endif %}
+        </div>
+        {% endfor %}
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button type="submit" class="btn btn-primary" style="flex:1;">{% if obj %}Save Changes{% else %}Add Transaction{% endif %}</button>
+          <a href="/transactions/" class="btn btn-outline">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get elements for the main transaction form
+    const categorySelect = document.getElementById('id_category');
+    const investmentTypeDiv = document.getElementById('div_id_investment_type');
+    // Pass the investment category PK as a number or null
+    const investmentCategoryPk = {{ investment_category_pk|default:"null" }};
+
+    function toggleInvestmentField() {
+        if (categorySelect && investmentTypeDiv) {
+            // Compare the selected category value (string) with the investment category PK (number or null)
+            investmentTypeDiv.style.display = (categorySelect.value == investmentCategoryPk) ? 'block' : 'none';
+        }
+    }
+
+    if (categorySelect) {
+        categorySelect.addEventListener('change', toggleInvestmentField);
+        toggleInvestmentField(); // Run once on load
+    }
+});
+</script>
+{% endblock %}

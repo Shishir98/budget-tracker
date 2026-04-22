@@ -1,0 +1,45 @@
+{% extends 'core/base.html' %}
+{% block title %}Import PDF — BudgetIQ{% endblock %}
+{% block page_title %}Import Bank Statement{% endblock %}
+{% block content %}
+<div class="main-content">
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-p">
+      <h6 class="fw-700 mb-1"><i class="bi bi-file-earmark-pdf me-2 text-danger"></i>Upload Bank Statement</h6>
+      <p class="small text-muted mb-3">Upload your bank statement PDF. Transactions will be parsed automatically, categories auto-assigned where possible, and the file deleted immediately after processing.</p>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Bank</label>
+          {{ form.bank_name }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Statement PDF</label>
+          {{ form.pdf_file }}
+          <div class="form-text">Supports ICICI, HDFC, SBI and most Indian bank statements. File is deleted after processing.</div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">
+          <i class="bi bi-upload me-2"></i>Upload & Parse
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header fw-600"><i class="bi bi-info-circle me-2"></i>Auto-Categorization</div>
+    <div class="card-p">
+      <p class="small text-muted mb-2">The following are auto-detected:</p>
+      <div class="row g-2">
+        {% for cat, kws in cats_preview.items %}{% endfor %}
+        <div class="col-6"><span class="cat-chip bg-warning text-dark">🍕 Food & Dining</span><div class="small text-muted mt-1">Swiggy, Zomato, Blinkit, Zepto…</div></div>
+        <div class="col-6"><span class="cat-chip bg-primary">📈 Investments</span><div class="small text-muted mt-1">INDmoney, Zerodha, SIPs…</div></div>
+        <div class="col-6"><span class="cat-chip bg-info text-dark">🚗 Transport</span><div class="small text-muted mt-1">Uber, Ola, IRCTC…</div></div>
+        <div class="col-6"><span class="cat-chip bg-success">🛒 Shopping</span><div class="small text-muted mt-1">Amazon, Flipkart, Myntra…</div></div>
+        <div class="col-6"><span class="cat-chip bg-danger">🎬 Entertainment</span><div class="small text-muted mt-1">Netflix, Spotify, YouTube…</div></div>
+        <div class="col-6"><span class="cat-chip bg-secondary">💊 Health</span><div class="small text-muted mt-1">Pharmacy, Apollo, 1mg…</div></div>
+      </div>
+      <p class="small text-muted mt-3 mb-0">Unmatched transactions will be marked <span class="badge bg-warning text-dark">unlabeled</span> for you to categorize.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

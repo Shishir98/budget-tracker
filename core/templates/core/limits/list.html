@@ -1,0 +1,65 @@
+{% extends 'core/base.html' %}
+{% block title %}Limits — BudgetIQ{% endblock %}
+{% block page_title %}Budget Limits{% endblock %}
+{% block content %}
+<div class="page">
+
+  <div style="font-size:.75rem;color:var(--muted);margin-bottom:16px;">{{ period_start|date:"d M" }} — {{ period_end|date:"d M Y" }}</div>
+
+  <!-- Set limit form -->
+  <div class="card">
+    <div class="card-hd">Set a Limit</div>
+    <div class="card-p">
+      <form method="post">
+        {% csrf_token %}
+        <div style="margin-bottom:12px;">
+          <label class="form-label">Category <span style="font-weight:400;text-transform:none;letter-spacing:0;">(leave blank for overall budget)</span></label>
+          {{ form.category }}
+        </div>
+        <div style="margin-bottom:14px;">
+          <label class="form-label">Monthly Limit (₹)</label>
+          {{ form.amount }}
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Set Limit</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Current limits -->
+  {% for a in alerts %}
+  <div class="card" style="margin-bottom:10px;">
+    <div class="card-p">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <div>
+          <div style="font-weight:600;margin-bottom:2px;">{{ a.label }}</div>
+          <div style="font-size:.78rem;color:var(--muted);">Limit: ₹{{ a.limit|floatformat:0 }}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:1.1rem;font-weight:800;color:{% if a.over %}#E74C3C{% elif a.warning %}#F39C12{% else %}var(--text){% endif %};">
+            ₹{{ a.spent|floatformat:0 }}
+          </div>
+          <div style="font-size:.72rem;color:{% if a.over %}#E74C3C{% elif a.warning %}#F39C12{% else %}#2ECC71{% endif %};">
+            {% if a.over %}{{ a.pct|floatformat:0 }}% — over budget{% elif a.warning %}{{ a.pct|floatformat:0 }}% used{% else %}{{ a.pct|floatformat:0 }}% used{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="pbar-wrap">
+        <div class="pbar" style="width:{{ a.pct }}%;background:{% if a.over %}#E74C3C{% elif a.warning %}#F39C12{% else %}#2ECC71{% endif %};"></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+        {% for lim in limits %}
+          {% if lim.category and lim.category.name == a.label or not lim.category and a.label == 'Overall Budget' %}
+          <form method="post" action="/limits/{{ lim.pk }}/delete/" onsubmit="return confirm('Remove this limit?')">
+            {% csrf_token %}<button class="btn btn-ghost btn-sm" style="color:#E74C3C;font-size:.78rem;">Remove</button>
+          </form>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="card"><div class="empty-state"><i class="bi bi-speedometer2"></i><p>No limits set yet.<br>Add one above to start tracking.</p></div></div>
+  {% endfor %}
+
+</div>
+{% endblock %}

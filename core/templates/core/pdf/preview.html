@@ -1,0 +1,103 @@
+{% extends 'core/base.html' %}
+{% block title %}Preview Import — BudgetIQ{% endblock %}
+{% block page_title %}Review & Import{% endblock %}
+{% block content %}
+<div class="main-content">
+  <div class="alert alert-info py-2 mb-3">
+    <i class="bi bi-info-circle me-2"></i>Found <strong>{{ total }}</strong> transactions. Review and select which to import. Adjust categories as needed.
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="d-flex gap-2 mb-3 sticky-top" style="top:60px; z-index:10; background:var(--bg); padding:8px 0;">
+      <button type="submit" class="btn btn-primary" style="flex:1">
+        <i class="bi bi-cloud-download me-2"></i>Import Selected
+      </button>
+      <button type="button" class="btn btn-outline" onclick="toggleAll()">Select All</button>
+      <a href="/upload/" class="btn btn-outline-danger">Cancel</a>
+    </div>
+
+    {% for t in preview %}
+    <div class="card" style="margin-bottom:8px">
+      <div class="card-body py-3">
+        <div class="d-flex gap-2 align-items-start">
+          <input type="checkbox" class="form-check-input tx-check mt-1" checked
+            name="tx_data"
+            value='{"date":"{{ t.date }}","amount":"{{ t.amount }}","type":"{{ t.type }}","description":"{{ t.description|escapejs }}","category_id":""}' 
+            id="tx{{ forloop.counter }}"
+            onchange="updateData(this)">
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-600 {% if t.is_withdrawal %}text-danger{% else %}text-success{% endif %}">
+                {% if t.is_withdrawal %}−{% else %}+{% endif %}₹{{ t.amount }}
+              </span>
+              <span class="small text-muted">{{ t.date }}</span>
+            </div>
+            <div class="small text-muted mb-2" style="word-break:break-word">{{ t.description|truncatechars:80 }}</div>
+            <div class="row g-1">
+              <div class="col-6">
+                <select class="form-select form-select-sm tx-type" onchange="updateRowData({{ forloop.counter }})">
+                  <option value="expense" {% if t.type == 'expense' %}selected{% endif %}>Expense</option>
+                  <option value="income" {% if t.type == 'income' %}selected{% endif %}>Income</option>
+                  <option value="investment" {% if t.type == 'investment' %}selected{% endif %}>Investment</option>
+                  <option value="side_income" {% if t.type == 'side_income' %}selected{% endif %}>Side Income</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <select class="form-select form-select-sm tx-cat" onchange="updateRowData({{ forloop.counter }})">
+                  <option value="">— Unlabeled —</option>
+                  {% for cat in categories %}
+                  <option value="{{ cat.pk }}" {% if t.category_name == cat.name %}selected{% endif %}>{{ cat.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            {% if t.category_name and not t.category_id %}
+            <div class="small text-warning mt-1"><i class="bi bi-lightbulb me-1"></i>Suggested: {{ t.category_name }} (create this category first)</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary w-100 mt-2">
+      <i class="bi bi-cloud-download me-2"></i>Import Selected Transactions
+    </button>
+  </form>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// Re-build JSON value for each row when dropdowns change
+function updateRowData(idx) {
+  const row = document.querySelectorAll('.tx-check')[idx - 1];
+  const card = row.closest('.card-body');
+  const typeEl = card.querySelector('.tx-type');
+  const catEl = card.querySelector('.tx-cat');
+  let val = JSON.parse(row.value);
+  val.type = typeEl.value;
+  val.category_id = catEl.value;
+  row.value = JSON.stringify(val);
+}
+
+let allChecked = true;
+function toggleAll() {
+  allChecked = !allChecked;
+  document.querySelectorAll('.tx-check').forEach(c => c.checked = allChecked);
+}
+
+// Init all checkboxes with correct default data
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.tx-check').forEach((cb, idx) => {
+    const card = cb.closest('.card-body');
+    const typeEl = card.querySelector('.tx-type');
+    const catEl = card.querySelector('.tx-cat');
+    let val = JSON.parse(cb.value);
+    val.type = typeEl.value;
+    val.category_id = catEl.value;
+    cb.value = JSON.stringify(val);
+  });
+});
+</script>
+{% endblock %}

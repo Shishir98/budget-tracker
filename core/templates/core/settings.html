@@ -1,0 +1,28 @@
+{% extends 'core/base.html' %}
+{% block title %}Settings — BudgetIQ{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-hd">Budget Preferences</div>
+    <div class="card-p">
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}<div style="margin-bottom:16px;"><label class="form-label">{{ field.label }}</label>{{ field }}{% if field.help_text %}<div style="font-size:.75rem;color:var(--muted);margin-top:4px;">{{ field.help_text }}</div>{% endif %}</div>{% endfor %}
+        <button type="submit" class="btn btn-primary" style="width:100%;">Save Settings</button>
+      </form>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-hd">Account</div>
+    <div class="row-item"><span style="color:var(--muted);">Username</span><span style="font-weight:600;">{{ request.user.username }}</span></div>
+    <div class="row-item"><span style="color:var(--muted);">Email</span><span>{{ request.user.email|default:"—" }}</span></div>
+  </div>
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-p" style="display:flex;flex-direction:column;gap:8px;">
+      <a href="/investments/types/" class="btn btn-outline">Manage Investment Types →</a>
+      <a href="/categories/" class="btn btn-outline">Manage Categories →</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

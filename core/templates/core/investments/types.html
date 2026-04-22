@@ -1,0 +1,35 @@
+{% extends 'core/base.html' %}
+{% block title %}Investment Types — BudgetIQ{% endblock %}
+{% block page_title %}Investment Types{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-hd">Add New Type</div>
+    <div class="card-p">
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}<div style="margin-bottom:14px;"><label class="form-label">{{ field.label }}</label>{{ field }}</div>{% endfor %}
+        <button type="submit" class="btn btn-primary" style="width:100%;">Add Type</button>
+      </form>
+    </div>
+  </div>
+  <div class="card">
+    {% for t in types %}
+    <div class="row-item">
+      <div style="display:flex;align-items:center;gap:12px;flex:1;">
+        <i class="bi bi-{{ t.icon }}" style="color:var(--primary);font-size:1.1rem;width:20px;text-align:center;"></i>
+        <div>
+          <div style="font-weight:500;">{{ t.name }}</div>
+          <div style="font-size:.72rem;color:var(--muted);">{% if t.has_maturity %}Has Maturity · {% endif %}{% if t.has_interest_rate %}Has Rate{% endif %}</div>
+        </div>
+      </div>
+      <form method="post" action="/investments/types/{{ t.pk }}/delete/" onsubmit="return confirm('Delete?')">
+        {% csrf_token %}<button class="btn btn-danger-ghost"><i class="bi bi-trash" style="font-size:.9rem;"></i></button>
+      </form>
+    </div>
+    {% empty %}
+    <div class="empty-state"><i class="bi bi-list-ul"></i><p>No custom types yet</p></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

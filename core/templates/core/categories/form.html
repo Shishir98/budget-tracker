@@ -1,0 +1,17 @@
+
+{% extends 'core/base.html' %}
+{% block title %}Edit Category — BudgetIQ{% endblock %}
+{% block page_title %}Edit Category{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="card"><div class="card-p">
+    <form method="post">{% csrf_token %}
+      {% for field in form %}<div style="margin-bottom:16px;"><label class="form-label">{{ field.label }}</label>{{ field }}</div>{% endfor %}
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        <a href="/categories/" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

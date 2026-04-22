@@ -1,0 +1,85 @@
+{% extends 'core/base.html' %}
+{% block title %}Subscriptions — BudgetIQ{% endblock %}
+{% block page_title %}Subscriptions{% endblock %}
+{% block content %}
+<div class="page">
+
+  <!-- Summary tiles -->
+  <div class="stats-grid" style="margin-bottom:16px;">
+    <div class="stat-tile accent-teal">
+      <div class="label">Monthly Cost</div>
+      <div class="value">₹{{ monthly_total|floatformat:0 }}</div>
+    </div>
+    <div class="stat-tile accent-purple">
+      <div class="label">Yearly Cost</div>
+      <div class="value">₹{{ yearly_total|floatformat:0 }}</div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+    <a href="/subscriptions/add/" class="btn btn-primary btn-sm btn-pill">+ Add Subscription</a>
+  </div>
+
+  <!-- List -->
+  <div class="card">
+    <!-- Formal Subscription Plans -->
+    {% for s in subs %}
+    <div class="row-item" style="{% if not s.is_active %}opacity:.5;{% endif %}">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+          <span style="font-weight:600;font-size:.9rem;">{{ s.name }}</span>
+          {% if s.category %}<span style="font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:20px;background:{{ s.category.color }}22;color:{{ s.category.color }};">{{ s.category.name }}</span>{% endif %}
+          {% if not s.is_active %}<span style="font-size:.68rem;color:var(--muted);">Paused</span>{% endif %}
+        </div>
+        <div style="font-size:.75rem;color:var(--muted);">
+          {{ s.get_billing_cycle_display }}
+          {% with days=s.days_until_billing %}
+          &nbsp;·&nbsp;
+          {% if days < 0 %}Overdue
+          {% elif days == 0 %}Due today
+          {% elif days <= 7 %}<span style="color:#E65100;font-weight:600;">Due in {{ days }}d</span>
+          {% else %}{{ s.next_billing_date|date:"d M Y" }}{% endif %}
+          {% endwith %}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+        <div style="text-align:right;">
+          <div style="font-weight:700;font-size:.9rem;">₹{{ s.amount }}</div>
+          {% if s.billing_cycle != 'monthly' %}<div style="font-size:.72rem;color:var(--muted);">~₹{{ s.monthly_equivalent|floatformat:0 }}/mo</div>{% endif %}
+        </div>
+        <div class="dropdown">
+          <button class="btn btn-ghost" data-bs-toggle="dropdown" style="padding:4px 8px;"><i class="bi bi-three-dots-vertical"></i></button>
+          <ul class="dropdown-menu dropdown-menu-end" style="border-radius:12px;font-size:.875rem;">
+            <li><a class="dropdown-item" href="/subscriptions/{{ s.pk }}/edit/"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+            <li><form method="post" action="/subscriptions/{{ s.pk }}/delete/" onsubmit="return confirm('Delete?')">
+              {% csrf_token %}<button class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Delete</button></form></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- Individual Transactions Tagged as Subscriptions -->
+    {% for payment in payment_history %}
+    <div class="tx-row" style="border-top: 1px solid var(--border);">
+      <div class="tx-icon" style="background: #F3F0FF; color: #6f42c1;">
+        <i class="bi bi-{% if payment.category %}{{ payment.category.icon }}{% else %}cash-stack{% endif %}"></i>
+      </div>
+      <div class="tx-label">
+        <div class="name">{{ payment.notes|default:payment.raw_description|default:"Subscription Payment"|truncatechars:40 }}</div>
+        <div class="meta">{{ payment.date|date:"d M Y" }} · Recorded Payment</div>
+      </div>
+      <div class="tx-amount" style="color: #6f42c1;">
+        −₹{{ payment.amount|floatformat:0 }}
+      </div>
+    </div>
+    {% endfor %}
+
+    {% if not subs and not payment_history %}
+    <div class="empty-state"><i class="bi bi-repeat"></i><p>No subscriptions tracked yet</p></div>
+    {% endif %}
+  </div>
+
+</div>
+<a href="/subscriptions/add/" class="fab"><i class="bi bi-plus"></i></a>
+{% endblock %}

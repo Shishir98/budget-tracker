@@ -1,0 +1,138 @@
+{% extends 'core/base.html' %}
+{% block title %}Investments — BudgetIQ{% endblock %}
+{% block page_title %}Investments{% endblock %}
+{% block content %}
+<div class="page">
+
+  <div class="stats-grid" style="margin-bottom:16px;">
+    <div class="stat-tile accent-purple">
+      <div class="label">Invested</div>
+      <div class="value">₹{{ total_invested|floatformat:0 }}</div>
+    </div>
+    <div class="stat-tile {% if portfolio_gain >= 0 %}accent-green{% else %}accent-red{% endif %}">
+      <div class="label">Current Value</div>
+      <div class="value">₹{{ current_vals|floatformat:0 }}</div>
+      <div class="sub">{% if portfolio_gain >= 0 %}+{% endif %}₹{{ portfolio_gain|floatformat:0 }}</div>
+    </div>
+  </div>
+
+  {% if by_type_labels != '[]' %}
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-hd">Portfolio Allocation</div>
+    <div class="card-p"><div style="height:210px;"><canvas id="portPie"></canvas></div></div>
+  </div>
+  {% endif %}
+
+  <div style="display:flex;gap:8px;margin-bottom:14px;">
+    <a href="/investments/add/" class="btn btn-primary btn-sm btn-pill">+ Add Investment</a>
+    <a href="/investments/types/" class="btn btn-outline btn-sm btn-pill">Manage Types</a>
+  </div>
+
+  {% if investments %}
+  <div style="margin-bottom: 20px;">
+  {% for inv in investments %}
+  <div class="card" style="margin-bottom:10px;border-left:3px solid {% if inv.is_active %}#6f42c1{% else %}var(--border){% endif %};">
+    <div class="card-p">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;margin-bottom:3px;">{{ inv.name }}</div>
+          <div style="font-size:.75rem;color:var(--muted);margin-bottom:10px;">{{ inv.investment_type.name|default:"—" }} · {{ inv.purchase_date|date:"d M Y" }}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:16px;">
+            <div>
+              <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:2px;">Invested</div>
+              <div style="font-weight:700;font-size:.9rem;">₹{{ inv.amount_invested|floatformat:0 }}</div>
+            </div>
+            {% if inv.current_value %}
+            <div>
+              <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:2px;">Current</div>
+              <div style="font-weight:700;font-size:.9rem;color:{% if inv.profit_loss >= 0 %}#2ECC71{% else %}#E74C3C{% endif %};">₹{{ inv.current_value|floatformat:0 }}</div>
+            </div>
+            {% endif %}
+            {% if inv.returns_percent %}
+            <div>
+              <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:2px;">Returns</div>
+              <div style="font-weight:700;font-size:.9rem;color:{% if inv.returns_percent >= 0 %}#2ECC71{% else %}#E74C3C{% endif %};">{% if inv.returns_percent >= 0 %}+{% endif %}{{ inv.returns_percent|floatformat:1 }}%</div>
+            </div>
+            {% endif %}
+            {% if inv.interest_rate %}
+            <div>
+              <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:2px;">Rate</div>
+              <div style="font-weight:700;font-size:.9rem;">{{ inv.interest_rate }}%</div>
+            </div>
+            {% endif %}
+          </div>
+          {% if inv.maturity_date %}
+          <div style="margin-top:10px;padding:8px 10px;background:var(--bg);border-radius:8px;font-size:.78rem;">
+            Matures {{ inv.maturity_date|date:"d M Y" }}
+            {% with days=inv.days_to_maturity %}
+            {% if days != None %}
+            · <strong>{% if days < 0 %}Matured{% elif days == 0 %}Today{% else %}{{ days }} days left{% endif %}</strong>
+            {% endif %}
+            {% endwith %}
+            {% if inv.expected_value_at_maturity %}
+            · Expected: <strong style="color:#2ECC71;">₹{{ inv.expected_value_at_maturity|floatformat:0 }}</strong>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+        <div class="dropdown" style="flex-shrink:0;">
+          <button class="btn btn-ghost" data-bs-toggle="dropdown" style="padding:4px 8px;"><i class="bi bi-three-dots-vertical"></i></button>
+          <ul class="dropdown-menu dropdown-menu-end" style="border-radius:12px;font-size:.875rem;">
+            <li><a class="dropdown-item" href="/investments/{{ inv.pk }}/edit/"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+            <li><form method="post" action="/investments/{{ inv.pk }}/delete/" onsubmit="return confirm('Delete?')">
+              {% csrf_token %}<button class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Delete</button></form></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if unlinked_txns %}
+  <div style="margin-bottom: 20px;">
+    <div style="font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Recent Investment Transactions</div>
+    <div class="card">
+      {% for t in unlinked_txns %}
+      <div class="tx-row">
+        <div class="tx-icon" style="background:#F3F0FF;color:#6f42c1">
+          <i class="bi bi-{% if t.category %}{{ t.category.icon }}{% else %}{{ t.type_icon }}{% endif %}"></i>
+        </div>
+        <div class="tx-label">
+          <div class="name">{{ t.notes|default:t.raw_description|default:"Investment"|truncatechars:40 }}</div>
+          <div class="meta">{{ t.date|date:"d M Y" }} · {{ t.investment_type.name|default:t.category.name|default:"Unlinked" }}</div>
+        </div>
+        <div class="tx-amount" style="color:#6f42c1">₹{{ t.amount|floatformat:0 }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if not investments and not unlinked_txns %}
+  <div class="card">
+    <div class="empty-state">
+      <i class="bi bi-graph-up-arrow"></i>
+      <p>No investments yet</p>
+      <a href="/investments/add/" class="btn btn-primary btn-sm" style="margin-top:12px;">Add Investment</a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+<a href="/investments/add/" class="fab"><i class="bi bi-plus"></i></a>
+{% endblock %}
+{% block extra_js %}
+{% if by_type_labels != '[]' %}
+<script>
+const colors = ['#6f42c1','#5C6BC0','#0dcaf0','#198754','#ffc107','#fd7e14','#dc3545'];
+new Chart(document.getElementById('portPie'), {
+  type: 'doughnut',
+  data: { labels: {{ by_type_labels|safe }}, datasets: [{ data: {{ by_type_data|safe }}, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '58%', plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 }, boxWidth: 10 } } } }
+});
+</script>
+{% endif %}
+{% endblock %}
+HTMLEOF

@@ -1,4 +1,4 @@
-# BudgetIQ — Personal Finance Tracker
+# Budget Tracker — Personal Finance Tracker
 
 A full-featured Django budgeting app, mobile-first.
 

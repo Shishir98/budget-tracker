@@ -20,9 +20,9 @@ created_users = []
 for uname, pwd, is_super in users_data:
     if not User.objects.filter(username=uname).exists():
         if is_super:
-            u = User.objects.create_superuser(uname, f'{uname}@budgetiq.app', pwd)
+            u = User.objects.create_superuser(uname, f'{uname}@budgettracker.app', pwd)
         else:
-            u = User.objects.create_user(uname, f'{uname}@budgetiq.app', pwd)
+            u = User.objects.create_user(uname, f'{uname}@budgettracker.app', pwd)
         print(f'Created user: {uname} / {pwd}')
     else:
         u = User.objects.get(username=uname)

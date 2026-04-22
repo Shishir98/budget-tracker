@@ -1,5 +1,5 @@
 {% extends 'core/base.html' %}
-{% block title %}Overview — BudgetIQ{% endblock %}
+{% block title %}Overview — Budget Tracker{% endblock %}
 {% block page_title %}Overview{% endblock %}
 {% block period_selector %}{% endblock %}
 {% block extra_css %}
@@ -66,10 +66,6 @@
     <div>
       <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Budget Period</div>
       <div style="font-weight:600;margin-top:2px">{{ period_start|date:"d M" }} — {{ period_end|date:"d M Y" }}</div>
-    </div>
-    <div class="d-md-none">
-      <a href="/?month={{ prev_month }}&year={{ prev_year }}" class="btn btn-outline btn-sm">←</a>
-      <a href="/?month={{ next_month }}&year={{ next_year }}" class="btn btn-outline btn-sm">→</a>
     </div>
     {% if unlabeled > 0 %}
     <a href="/transactions/?unlabeled=1&month={{ view_month }}&year={{ view_year }}" style="background:#FFF8E1;color:#E65100;padding:6px 12px;border-radius:20px;font-size:.75rem;font-weight:700;text-decoration:none;">

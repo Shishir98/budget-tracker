@@ -55,6 +55,64 @@
   .dash-shortcut.an .icon { background: var(--alert-info-bg); color: var(--alert-info-text); }
   .dash-shortcut.inv .icon { background: var(--tx-invest-bg); color: var(--tx-invest-text); }
   .dash-shortcut.sub .icon { background: var(--tx-income-bg); color: var(--tx-income-text); }
+
+  /* Summary metric links */
+  a.summary-metric {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease, background-color .2s ease;
+  }
+  a.summary-metric:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: var(--primary) !important;
+  }
+  [data-bs-theme="dark"] a.summary-metric:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+  }
+
+  /* Quick Actions Menu */
+  .quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 4px;
+  }
+  .quick-action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--text);
+    padding: 20px 10px;
+    border-radius: 18px;
+    background: var(--bg);
+    transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .quick-action-item:hover {
+    background: var(--surface);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+    border-color: var(--primary);
+  }
+  .quick-action-item i {
+    font-size: 1.6rem;
+    color: var(--primary);
+  }
+  .quick-action-item span {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--muted);
+  }
+  .quick-action-item:hover span { color: var(--text); }
 </style>
 {% endblock %}
 
@@ -93,23 +151,24 @@
     <div class="card-hd">Summary</div>
     <div class="card-p">
       <div class="summary-metrics">
-        <div class="summary-metric accent-green">
+        <a href="/transactions/?type=income&month={{ view_month }}&year={{ view_year }}" class="summary-metric accent-green">
           <div class="label">Income</div>
           <div class="value">₹{{ stats.income|floatformat:0 }}</div>
-        </div>
-        <div class="summary-metric accent-red">
+          <div class="sub">₹{{ stats.main_income|floatformat:0 }} Main · ₹{{ stats.side_income|floatformat:0 }} Side</div>
+        </a>
+        <a href="/transactions/?type=expense&month={{ view_month }}&year={{ view_year }}" class="summary-metric accent-red">
           <div class="label">Expenses</div>
           <div class="value">₹{{ stats.expense|floatformat:0 }}</div>
-        </div>
-        <div class="summary-metric accent-blue">
+        </a>
+        <a href="/savings/" class="summary-metric accent-blue">
           <div class="label">Net Savings</div>
           <div class="value">₹{{ stats.savings|floatformat:0 }}</div>
           <div class="sub">{{ stats.savings_rate }}% savings rate</div>
-        </div>
-        <div class="summary-metric accent-purple">
+        </a>
+        <a href="/investments/" class="summary-metric accent-purple">
           <div class="label">Invested</div>
           <div class="value">₹{{ stats.investment|floatformat:0 }}</div>
-        </div>
+        </a>
       </div>
     </div>
   </div>
@@ -123,7 +182,7 @@
   </div>
   {% endif %}
 
-  <!-- Over-budget alerts -->
+  {% comment %} <!-- Over-budget alerts -->
   {% for a in over_budget %}
   <div class="alert alert-danger d-flex align-items-center gap-2 mb-2">
     <i class="bi bi-exclamation-triangle-fill"></i>
@@ -152,7 +211,7 @@
       {% endfor %}
     </div>
   </div>
-  {% endif %}
+  {% endif %} {% endcomment %}
 
   <!-- Portfolio -->
   {% if total_invested > 0 %}
@@ -187,7 +246,7 @@
   {% endif %}
 
   <!-- Quick navigation -->
-  <div class="card">
+  <div class="card d-none d-md-block">
     <div class="card-hd">Quick Access</div>
     <div class="card-p">
       <div class="dash-shortcuts">
@@ -327,9 +386,49 @@
 </div>
 
 <!-- Quick Add Trigger -->
-<button type="button" class="fab" data-bs-toggle="modal" data-bs-target="#quickAddModal" style="border:none;">
+<button type="button" class="fab" data-bs-toggle="modal" data-bs-target="#quickMenuModal" style="border:none;">
   <i class="bi bi-plus"></i>
 </button>
+
+<!-- Quick Menu Modal -->
+<div class="modal fade" id="quickMenuModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 24px; border: none; box-shadow: 0 15px 50px rgba(0,0,0,0.2);">
+      <div class="modal-header" style="border: none; padding: 24px 24px 10px;">
+        <h5 class="modal-title" style="font-weight: 800; letter-spacing: -0.5px;">Create New</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <div class="quick-actions-grid">
+          <a href="#" class="quick-action-item" data-bs-toggle="modal" data-bs-target="#quickAddModal" data-bs-dismiss="modal">
+            <i class="bi bi-plus-circle-fill"></i>
+            <span>Transaction</span>
+          </a>
+          <a href="/categories/" class="quick-action-item">
+            <i class="bi bi-tags-fill"></i>
+            <span>Category</span>
+          </a>
+          <a href="/investments/add/" class="quick-action-item">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Investment</span>
+          </a>
+          <a href="/limits/" class="quick-action-item">
+            <i class="bi bi-speedometer2"></i>
+            <span>Budget Limit</span>
+          </a>
+          <a href="/investments/types/" class="quick-action-item">
+            <i class="bi bi-collection-fill"></i>
+            <span>Inv. Type</span>
+          </a>
+          <a href="/upload/" class="quick-action-item">
+            <i class="bi bi-file-earmark-pdf-fill"></i>
+            <span>Import PDF</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Quick Add Modal (The Big Card) -->
 <div class="modal fade" id="quickAddModal" tabindex="-1" aria-hidden="true">
@@ -366,9 +465,10 @@ new Chart(document.getElementById('momChart'), {
   data: {
     labels: {{ mom_labels|safe }},
     datasets: [
-      { label: 'Income', data: {{ mom_income|safe }}, backgroundColor: 'rgba(46,204,113,.75)', borderRadius: 6, borderSkipped: false },
-      { label: 'Expense', data: {{ mom_expense|safe }}, backgroundColor: 'rgba(231,76,60,.75)', borderRadius: 6, borderSkipped: false },
-      { label: 'Savings', data: {{ mom_savings|safe }}, backgroundColor: 'rgba(37,99,235,.75)', borderRadius: 6, borderSkipped: false }
+      { label: 'Main Income', data: {{ mom_main_income|safe }}, backgroundColor: 'rgba(39, 174, 96, 1)', borderRadius: 6, borderSkipped: false, stack: 'income' },
+      { label: 'Side Income', data: {{ mom_side_income|safe }}, backgroundColor: 'rgba(128, 203, 196, 0.8)', borderRadius: 6, borderSkipped: false, stack: 'income' },
+      { label: 'Expense', data: {{ mom_expense|safe }}, backgroundColor: 'rgba(231,76,60,.75)', borderRadius: 6, borderSkipped: false, stack: 'expense' },
+      { label: 'Savings', data: {{ mom_savings|safe }}, backgroundColor: 'rgba(37,99,235,.75)', borderRadius: 6, borderSkipped: false, stack: 'savings' }
     ]
   },
   options: {

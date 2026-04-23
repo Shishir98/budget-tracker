@@ -53,7 +53,10 @@ def transaction_list(request):
     if cat_id:
         qs = qs.filter(category_id=cat_id)
     if tx_type:
-        qs = qs.filter(type=tx_type)
+        if tx_type == 'income':
+            qs = qs.filter(Q(type='income') | Q(type='side_income'))
+        else:
+            qs = qs.filter(type=tx_type)
     if date_from:
         qs = qs.filter(date__gte=date_from)
     if date_to:

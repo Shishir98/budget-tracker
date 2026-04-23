@@ -1,6 +1,44 @@
 {% extends 'core/base.html' %}
 {% block title %}Categories — Budget Tracker{% endblock %}
 {% block page_title %}Categories{% endblock %}
+
+{% block extra_css %}
+<style>
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+    gap: 6px;
+    margin-top: 10px;
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--bg) 95%, var(--text));
+  }
+  .icon-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    color: var(--muted);
+  }
+  .icon-item:hover { background: var(--icon-hover); color: var(--text); transform: scale(1.1); }
+  .icon-item.active { 
+    background: var(--primary); 
+    color: white !important; 
+    border-color: var(--primary); 
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25); 
+    transform: scale(1.1);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page">
 
@@ -32,8 +70,11 @@
           </div>
           <div>
             <label class="form-label">Icon</label>
-            <input type="text" name="icon" class="form-control" placeholder="e.g. cart, phone" value="tag">
+            <input type="text" name="icon" class="form-control icon-picker-input" placeholder="e.g. cart, phone" value="tag">
           </div>
+        </div>
+        <div id="iconPicker" class="icon-grid" style="margin-bottom:14px;">
+          <!-- Icons injected by JS -->
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
           <input type="checkbox" name="is_subscription" id="is_sub" class="form-check-input" style="width:16px;height:16px;">
@@ -68,4 +109,47 @@
   </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const iconList = [
+    'cart', 'bag', 'shop', 'basket', 'house', 'building', 'tools', 'car-front', 'bus-front', 
+    'bicycle', 'train-front', 'cup-hot', 'egg-fried', 'restaurant', 'heart', 'capsule', 
+    'hospital', 'lightning', 'droplet', 'wifi', 'phone', 'controller', 'ticket', 'music-note', 
+    'piggy-bank', 'graph-up', 'wallet', 'briefcase', 'cash-stack', 'gift', 'envelope', 
+    'credit-card', 'bank', 'mortarboard', 'book', 'sun', 'airplane', 'gear', 'question-circle',
+    'tv', 'laptop', 'camera', 'scissors', 'hammer', 'umbrella', 'palette', 'pills'
+  ];
+  
+  const picker = document.getElementById('iconPicker');
+  const input = document.querySelector('.icon-picker-input');
+  
+  if (!picker || !input) return;
+
+  iconList.forEach(icon => {
+    const item = document.createElement('div');
+    item.className = 'icon-item';
+    if (input.value === icon) item.classList.add('active');
+    item.innerHTML = `<i class="bi bi-${icon}"></i>`;
+    item.title = icon;
+    
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.icon-item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+      input.value = icon;
+    });
+    
+    picker.appendChild(item);
+  });
+
+  input.addEventListener('input', () => {
+    document.querySelectorAll('.icon-item').forEach(el => {
+      if (el.title === input.value) el.classList.add('active');
+      else el.classList.remove('active');
+    });
+  });
+});
+</script>
 {% endblock %}

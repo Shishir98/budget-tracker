@@ -161,7 +161,8 @@ def analytics(request):
     
     # Monthly trend (last 6 months or quarters)
     trend_labels = []
-    trend_income = []
+    trend_main_income = []
+    trend_side_income = []
     trend_expense = []
     trend_investment = []
     trend_savings = []
@@ -179,13 +180,16 @@ def analytics(request):
                 m_end = datetime.date(d.year, d.month + 1, 1) - datetime.timedelta(days=1)
             
             m_txns = Transaction.objects.filter(user=user, date__gte=m_start, date__lte=m_end)
-            inc = float(m_txns.filter(type__in=['income', 'side_income']).aggregate(t=Sum('amount'))['t'] or 0)
+            main_inc = float(m_txns.filter(type='income').aggregate(t=Sum('amount'))['t'] or 0)
+            side_inc = float(m_txns.filter(type='side_income').aggregate(t=Sum('amount'))['t'] or 0)
+            inc = main_inc + side_inc
             exp = float(m_txns.filter(type='expense').aggregate(t=Sum('amount'))['t'] or 0)
             inv = float(
                 m_txns.filter(Q(type='investment') | Q(category__type='investment')).aggregate(t=Sum('amount'))['t'] or 0
             )
             trend_labels.append(d.strftime('%b %Y'))
-            trend_income.append(inc)
+            trend_main_income.append(main_inc)
+            trend_side_income.append(side_inc)
             trend_expense.append(exp)
             trend_investment.append(inv)
             trend_savings.append(inc - exp - inv)
@@ -229,7 +233,8 @@ def analytics(request):
         'income_data': list(income_by_cat.values()),
         'income_colors': list(income_colors.values()),
         'trend_labels': trend_labels,
-        'trend_income': trend_income,
+        'trend_main_income': trend_main_income,
+        'trend_side_income': trend_side_income,
         'trend_expense': trend_expense,
         'trend_investment': trend_investment,
         'trend_savings': trend_savings,

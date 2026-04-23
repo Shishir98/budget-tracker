@@ -164,7 +164,8 @@ def dashboard(request):
         'limit_comparison': limit_comparison,
         'mom': mom,
         'mom_labels': json.dumps([m['month'] for m in mom]),
-        'mom_income': json.dumps([float(m['income']) for m in mom]),
+        'mom_main_income': json.dumps([float(m['main_income']) for m in mom]),
+        'mom_side_income': json.dumps([float(m['side_income']) for m in mom]),
         'mom_expense': json.dumps([float(m['expense']) for m in mom]),
         'mom_savings': json.dumps([float(m['savings']) for m in mom]),
     }

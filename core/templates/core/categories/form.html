@@ -1,17 +1,108 @@
-
 {% extends 'core/base.html' %}
-{% block title %}Edit Category — Budget Tracker{% endblock %}
-{% block page_title %}Edit Category{% endblock %}
+{% block title %}Category — Budget Tracker{% endblock %}
+{% block page_title %}Category{% endblock %}
+
+{% block extra_css %}
+<style>
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--bg) 95%, var(--text));
+  }
+  .icon-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    border-radius: 10px;
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    color: var(--muted);
+  }
+  .icon-item:hover { background: var(--icon-hover); color: var(--text); transform: scale(1.1); }
+  .icon-item.active { 
+    background: var(--primary); 
+    color: white !important; 
+    border-color: var(--primary); 
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); 
+    transform: scale(1.1);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page">
   <div class="card"><div class="card-p">
     <form method="post">{% csrf_token %}
-      {% for field in form %}<div style="margin-bottom:16px;"><label class="form-label">{{ field.label }}</label>{{ field }}</div>{% endfor %}
-      <div style="display:flex;gap:10px;margin-top:8px;">
-        <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+      {% for field in form %}
+      <div style="margin-bottom:16px;">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.name == 'icon' %}
+        <div id="iconPicker" class="icon-grid">
+          <!-- Icons injected by JS -->
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <div style="display:flex;gap:10px;margin-top:24px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Save Category</button>
         <a href="/categories/" class="btn btn-outline">Cancel</a>
       </div>
     </form>
   </div></div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const iconList = [
+    'cart', 'bag', 'shop', 'basket', 'house', 'building', 'tools', 'car-front', 'bus-front', 
+    'bicycle', 'train-front', 'cup-hot', 'egg-fried', 'restaurant', 'heart', 'capsule', 
+    'hospital', 'lightning', 'droplet', 'wifi', 'phone', 'controller', 'ticket', 'music-note', 
+    'piggy-bank', 'graph-up', 'wallet', 'briefcase', 'cash-stack', 'gift', 'envelope', 
+    'credit-card', 'bank', 'mortarboard', 'book', 'sun', 'airplane', 'gear', 'question-circle',
+    'tv', 'laptop', 'camera', 'scissors', 'hammer', 'umbrella', 'palette', 'pills'
+  ];
+  
+  const picker = document.getElementById('iconPicker');
+  const input = document.querySelector('.icon-picker-input');
+  
+  if (!picker || !input) return;
+
+  iconList.forEach(icon => {
+    const item = document.createElement('div');
+    item.className = 'icon-item';
+    if (input.value === icon) item.classList.add('active');
+    item.innerHTML = `<i class="bi bi-${icon}"></i>`;
+    item.title = icon;
+    
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.icon-item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+      input.value = icon;
+    });
+    
+    picker.appendChild(item);
+  });
+
+  // Also update picker when user types manually
+  input.addEventListener('input', () => {
+    document.querySelectorAll('.icon-item').forEach(el => {
+      if (el.title === input.value) el.classList.add('active');
+      else el.classList.remove('active');
+    });
+  });
+});
+</script>
 {% endblock %}

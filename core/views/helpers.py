@@ -49,12 +49,16 @@ def get_period_range(user, period='month', year=None, month=None, quarter=None):
 
 def get_summary_stats(user, start_date, end_date):
     txns = Transaction.objects.filter(user=user, date__gte=start_date, date__lte=end_date)
-    income = txns.filter(type__in=['income', 'side_income']).aggregate(t=Sum('amount'))['t'] or Decimal('0')
+    main_income = txns.filter(type='income').aggregate(t=Sum('amount'))['t'] or Decimal('0')
+    side_income = txns.filter(type='side_income').aggregate(t=Sum('amount'))['t'] or Decimal('0')
+    income = main_income + side_income
     expense = txns.filter(type='expense').aggregate(t=Sum('amount'))['t'] or Decimal('0')
     investment = txns.filter(type='investment').aggregate(t=Sum('amount'))['t'] or Decimal('0')
     savings = income - expense - investment
     return {
         'income': income,
+        'main_income': main_income,
+        'side_income': side_income,
         'expense': expense,
         'investment': investment,
         'savings': savings,

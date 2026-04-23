@@ -1,6 +1,43 @@
 {% extends 'core/base.html' %}
 {% block title %}Investment Types — Budget Tracker{% endblock %}
 {% block page_title %}Investment Types{% endblock %}
+{% block extra_css %}
+<style>
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+    max-height: 180px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--bg) 95%, var(--text));
+  }
+  .icon-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    border-radius: 10px;
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    color: var(--muted);
+  }
+  .icon-item:hover { background: var(--icon-hover); color: var(--text); transform: scale(1.1); }
+  .icon-item.active { 
+    background: var(--primary); 
+    color: white !important; 
+    border-color: var(--primary); 
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); 
+    transform: scale(1.1);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page">
   <div class="card" style="margin-bottom:16px;">
@@ -8,8 +45,18 @@
     <div class="card-p">
       <form method="post">
         {% csrf_token %}
-        {% for field in form %}<div style="margin-bottom:14px;"><label class="form-label">{{ field.label }}</label>{{ field }}</div>{% endfor %}
-        <button type="submit" class="btn btn-primary" style="width:100%;">Add Type</button>
+        {% for field in form %}
+        <div style="margin-bottom:14px;">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% if field.name == 'icon' %}
+          <div id="iconPicker" class="icon-grid">
+            <!-- Icons injected by JS -->
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 10px;">Add Type</button>
       </form>
     </div>
   </div>
@@ -32,4 +79,44 @@
     {% endfor %}
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const iconList = [
+    'piggy-bank', 'graph-up', 'wallet', 'briefcase', 'cash-stack', 'bank', 'credit-card',
+    'gem', 'gold', 'shield-lock', 'safe', 'currency-exchange', 'activity', 'pie-chart',
+    'bar-chart', 'hourglass-split', 'calendar-check', 'building-up', 'house-heart'
+  ];
+  
+  const picker = document.getElementById('iconPicker');
+  const input = document.querySelector('.icon-picker-input');
+  
+  if (!picker || !input) return;
+
+  iconList.forEach(icon => {
+    const item = document.createElement('div');
+    item.className = 'icon-item';
+    if (input.value === icon) item.classList.add('active');
+    item.innerHTML = `<i class="bi bi-${icon}"></i>`;
+    item.title = icon;
+    
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.icon-item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+      input.value = icon;
+    });
+    
+    picker.appendChild(item);
+  });
+
+  input.addEventListener('input', () => {
+    document.querySelectorAll('.icon-item').forEach(el => {
+      if (el.title === input.value) el.classList.add('active');
+      else el.classList.remove('active');
+    });
+  });
+});
+</script>
 {% endblock %}

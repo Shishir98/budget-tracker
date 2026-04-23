@@ -1,31 +1,64 @@
 {% extends 'core/base.html' %}
 {% block title %}Analytics — Budget Tracker{% endblock %}
 {% block page_title %}Analytics{% endblock %}
+{% block extra_css %}
+<style>
+  .period-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .period-tabs .btn { flex: 1; text-align: center; }
+</style>
+{% endblock %}
+
+{% block period_selector %}
+<form method="get" class="d-flex gap-2">
+  <input type="hidden" name="period" value="{{ period }}">
+  {% if period == 'month' %}
+  <select name="month" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+    {% for num, name in months %}<option value="{{ num }}" {% if num == month %}selected{% endif %}>{{ name }}</option>{% endfor %}
+  </select>
+  {% elif period == 'quarter' %}
+  <select name="quarter" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+    {% for q in "1234"|make_list %}<option value="{{ q }}" {% if q|add:0 == quarter %}selected{% endif %}>Q{{ q }}</option>{% endfor %}
+  </select>
+  {% endif %}
+  <select name="year" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+    {% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}
+  </select>
+</form>
+{% endblock %}
+
 {% block content %}
 <div class="page">
 
-  <!-- Period selector -->
-  <div class="card" style="margin-bottom:16px; background: transparent !important; border: none !important; box-shadow: none !important;">
-    <div class="card-p" style="padding: 0 0 12px 0;">
-      <div style="display:flex;gap:6px;margin-bottom:12px;">
-        <a href="?period=month&year={{ year }}&month={{ month }}" class="btn btn-sm {% if period == 'month' %}btn-primary{% else %}btn-outline{% endif %}" style="flex:1;text-align:center;">Month</a>
-        <a href="?period=quarter&year={{ year }}&quarter={{ quarter }}" class="btn btn-sm {% if period == 'quarter' %}btn-primary{% else %}btn-outline{% endif %}" style="flex:1;text-align:center;">Quarter</a>
-        <a href="?period=year&year={{ year }}" class="btn btn-sm {% if period == 'year' %}btn-primary{% else %}btn-outline{% endif %}" style="flex:1;text-align:center;">Year</a>
-      </div>
-      <form method="get" style="display:flex;gap:8px;align-items:center;">
-        <input type="hidden" name="period" value="{{ period }}">
-        {% if period == 'quarter' %}<input type="hidden" name="quarter" value="{{ quarter }}">{% endif %}
-        {% if period == 'month' %}
-        <select name="month" class="form-select" style="flex:1; background-color: transparent !important;" onchange="this.form.submit()">
-          {% for num, name in months %}<option value="{{ num }}" {% if num == month %}selected{% endif %}>{{ name }}</option>{% endfor %}
-        </select>
-        {% endif %}
-        <select name="year" class="form-select" style="flex:1; background-color: transparent !important;" onchange="this.form.submit()">
-          {% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}
-        </select>
-      </form>
+  <!-- Period Header -->
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+    <div>
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Analysis Period</div>
+      <div style="font-weight:600;margin-top:2px">{{ start|date:"d M Y" }} — {{ end|date:"d M Y" }}</div>
     </div>
   </div>
+
+  <div class="period-tabs">
+    <a href="?period=month&year={{ year }}&month={{ month }}" class="btn btn-sm {% if period == 'month' %}btn-primary{% else %}btn-outline{% endif %}">Month</a>
+    <a href="?period=quarter&year={{ year }}&quarter={{ quarter }}" class="btn btn-sm {% if period == 'quarter' %}btn-primary{% else %}btn-outline{% endif %}">Quarter</a>
+    <a href="?period=year&year={{ year }}" class="btn btn-sm {% if period == 'year' %}btn-primary{% else %}btn-outline{% endif %}">Year</a>
+  </div>
+
+  <!-- Mobile Selector (Visible only on mobile because topbar selector is d-none d-md-block) -->
+  <form method="get" class="d-md-none d-flex gap-2 mb-4">
+    <input type="hidden" name="period" value="{{ period }}">
+    {% if period == 'month' %}
+    <select name="month" class="form-select form-select-sm" onchange="this.form.submit()" style="flex: 1;">
+      {% for num, name in months %}<option value="{{ num }}" {% if num == month %}selected{% endif %}>{{ name }}</option>{% endfor %}
+    </select>
+    {% elif period == 'quarter' %}
+    <select name="quarter" class="form-select form-select-sm" onchange="this.form.submit()" style="flex: 1;">
+      {% for q in "1234"|make_list %}<option value="{{ q }}" {% if q|add:0 == quarter %}selected{% endif %}>Q{{ q }}</option>{% endfor %}
+    </select>
+    {% endif %}
+    <select name="year" class="form-select form-select-sm" onchange="this.form.submit()" style="flex: 1;">
+      {% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}
+    </select>
+  </form>
 
   <!-- Summary -->
   <div class="card">
@@ -150,7 +183,8 @@
 {{ expense_data|json_script:"expense-values-data" }}
 {{ expense_colors|json_script:"expense-colors-data" }}
 {{ trend_labels|json_script:"trend-labels-data" }}
-{{ trend_income|json_script:"trend-income-data" }}
+{{ trend_main_income|json_script:"trend-main-income-data" }}
+{{ trend_side_income|json_script:"trend-side-income-data" }}
 {{ trend_expense|json_script:"trend-expense-data" }}
 {{ trend_investment|json_script:"trend-investment-data" }}
 {{ trend_savings|json_script:"trend-savings-data" }}
@@ -168,16 +202,28 @@ const getJson = (id) => {
   }
 };
 
+const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const chartTextColor = cssVar('--muted');
+const chartGridColor = cssVar('--border');
+const chartSurfaceColor = cssVar('--surface');
+
 const chartOpts = {
   responsive: true, maintainAspectRatio: false,
-  plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 }, boxWidth: 10 } } }
+  color: chartTextColor,
+  plugins: {
+    legend: {
+      position: 'bottom',
+      labels: { color: chartTextColor, padding: 14, font: { size: 11 }, boxWidth: 10 }
+    }
+  }
 };
 
 const expenseLabels = getJson('expense-labels-data');
 const expenseValues = getJson('expense-values-data');
 const expenseColors = getJson('expense-colors-data');
 const trendLabels = getJson('trend-labels-data');
-const trendIncome = getJson('trend-income-data');
+const trendMainIncome = getJson('trend-main-income-data');
+const trendSideIncome = getJson('trend-side-income-data');
 const trendExpense = getJson('trend-expense-data');
 const trendInvestment = getJson('trend-investment-data');
 const trendSavings = getJson('trend-savings-data');
@@ -191,7 +237,7 @@ if (expenseCanvas && expenseValues.length) {
     type: 'doughnut',
     data: {
       labels: expenseLabels,
-      datasets: [{ data: expenseValues, backgroundColor: expenseColors, borderWidth: 2, borderColor: '#fff' }]
+      datasets: [{ data: expenseValues, backgroundColor: expenseColors, borderWidth: 2, borderColor: chartSurfaceColor }]
     },
     options: Object.assign({}, chartOpts, { cutout: '62%' })
   });
@@ -204,13 +250,17 @@ if (trendCanvas && trendLabels.length) {
     data: {
       labels: trendLabels,
       datasets: [
-        { label: 'Income', data: trendIncome, backgroundColor: 'rgba(46,204,113,.75)', borderRadius: 5, borderSkipped: false },
+        { label: 'Main Income', data: trendMainIncome, backgroundColor: 'rgba(39, 174, 96, 1)', borderRadius: 5, borderSkipped: false, stack: 'income' },
+        { label: 'Side Income', data: trendSideIncome, backgroundColor: 'rgba(128, 203, 196, 0.8)', borderRadius: 5, borderSkipped: false, stack: 'income' },
         { label: 'Expense', data: trendExpense, backgroundColor: 'rgba(231,76,60,.75)', borderRadius: 5, borderSkipped: false },
         { label: 'Investment', data: trendInvestment, backgroundColor: 'rgba(111,66,193,.75)', borderRadius: 5, borderSkipped: false }
       ]
     },
     options: Object.assign({}, chartOpts, {
-      scales: { y: { beginAtZero: true, grid: { color: '#F0F0F0' } }, x: { grid: { display: false } } }
+      scales: {
+        y: { beginAtZero: true, grid: { color: chartGridColor }, ticks: { color: chartTextColor } },
+        x: { grid: { display: false }, ticks: { color: chartTextColor } }
+      }
     })
   });
 }
@@ -232,7 +282,10 @@ if (savingsCanvas && trendLabels.length) {
       }]
     },
     options: Object.assign({}, chartOpts, {
-      scales: { y: { grid: { color: '#F0F0F0' } }, x: { grid: { display: false } } }
+      scales: {
+        y: { grid: { color: chartGridColor }, ticks: { color: chartTextColor } },
+        x: { grid: { display: false }, ticks: { color: chartTextColor } }
+      }
     })
   });
 }
@@ -243,7 +296,7 @@ if (invCanvas && invValues.length) {
     type: 'pie',
     data: {
       labels: invLabels,
-      datasets: [{ data: invValues, backgroundColor: invColors, borderWidth: 2, borderColor: '#fff' }]
+      datasets: [{ data: invValues, backgroundColor: invColors, borderWidth: 2, borderColor: chartSurfaceColor }]
     },
     options: chartOpts
   });

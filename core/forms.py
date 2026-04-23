@@ -71,7 +71,7 @@ class InvestmentTypeForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.TextInput(attrs={'class': 'form-control'}),
-            'icon': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bootstrap icon name'}),
+            'icon': forms.TextInput(attrs={'class': 'form-control icon-picker-input', 'placeholder': 'Bootstrap icon name'}),
             'has_maturity': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'has_interest_rate': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
@@ -85,7 +85,7 @@ class CategoryForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'color': forms.TextInput(attrs={'type': 'color', 'class': 'form-control form-control-color'}),
             'type': forms.Select(attrs={'class': 'form-select'}),
-            'icon': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. cart, phone, heart'}),
+            'icon': forms.TextInput(attrs={'class': 'form-control icon-picker-input', 'placeholder': 'e.g. cart, phone, heart'}),
             'is_subscription': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 

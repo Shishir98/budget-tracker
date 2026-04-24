@@ -37,7 +37,6 @@ def limit_list(request):
 
     start, end = profile.get_current_month_range(reference_date=ref_date)
     
-    limits = MonthlyLimit.objects.filter(user=user).select_related('category')
     alerts = check_limits(user, start, end)
     
     form = MonthlyLimitForm(user)
@@ -58,7 +57,7 @@ def limit_list(request):
     months = [(i, datetime.date(2000, i, 1).strftime('%B')) for i in range(1, 13)]
     
     return render(request, 'core/limits/list.html', {
-        'limits': limits, 'alerts': alerts, 'form': form,
+        'alerts': alerts, 'form': form,
         'period_start': start, 'period_end': end,
         'view_month': view_month, 'view_year': view_year,
         'months': months, 'years': years,
@@ -72,3 +71,18 @@ def limit_delete(request, pk):
         obj.delete()
         messages.success(request, 'Limit removed.')
     return redirect('limit_list')
+
+
+@login_required
+def limit_edit(request, pk):
+    obj = get_object_or_404(MonthlyLimit, pk=pk, user=request.user)
+    if request.method == 'POST':
+        form = MonthlyLimitForm(request.user, request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Limit updated.')
+            return redirect('limit_list')
+    else:
+        form = MonthlyLimitForm(request.user, instance=obj)
+    
+    return render(request, 'core/limits/edit.html', {'form': form, 'limit': obj})

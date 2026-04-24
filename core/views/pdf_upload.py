@@ -83,7 +83,8 @@ def pdf_preview(request):
                         pass
                 
                 from datetime import date
-                Transaction.objects.create(
+                from .helpers import ensure_subscription_plan
+                tx = Transaction.objects.create(
                     user=request.user,
                     date=date.fromisoformat(d['date']),
                     amount=d['amount'],
@@ -94,6 +95,8 @@ def pdf_preview(request):
                     raw_description=d.get('description', '')[:1000],
                     from_pdf=True,
                 )
+                if tx.is_subscription:
+                    ensure_subscription_plan(tx)
                 imported += 1
             except Exception:
                 continue

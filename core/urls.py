@@ -32,6 +32,7 @@ urlpatterns = [
     
     # Limits
     path('limits/', views.limit_list, name='limit_list'),
+    path('limits/<int:pk>/edit/', views.limit_edit, name='limit_edit'),
     path('limits/<int:pk>/delete/', views.limit_delete, name='limit_delete'),
     
     # Subscriptions

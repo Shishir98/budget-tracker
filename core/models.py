@@ -132,6 +132,10 @@ class Investment(models.Model):
     interest_rate = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
     notes = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
+    is_recurring = models.BooleanField(default=False)
+    recurring_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    auto_deduct = models.BooleanField(default=False)
+    next_deduction_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -205,6 +209,7 @@ class Subscription(models.Model):
     next_billing_date = models.DateField()
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    auto_deduct = models.BooleanField(default=False)
     notes = models.TextField(blank=True)
 
     class Meta:

@@ -18,6 +18,27 @@
 </form>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+  .tx-row { position: relative; transition: background-color 0.2s; }
+  .tx-row:hover { background-color: rgba(0,0,0,0.02); }
+  [data-bs-theme="dark"] .tx-row:hover { background-color: rgba(255,255,255,0.03); }
+  
+  /* Ensure row with open dropdown is on top */
+  .tx-row:has(.show) { z-index: 100; }
+  
+  .dropdown-menu { 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border: 1px solid var(--border);
+    padding: 6px;
+  }
+  .dropdown-item {
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page">
 
@@ -59,6 +80,7 @@
         <button type="submit" class="btn btn-sm" style="background:#FFF8E1;color:#E65100;border:none;flex-shrink:0;">Apply to selected</button>
       </div>
     </div>
+  </form>
   {% endif %}
 
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -88,11 +110,17 @@
           {% if t.type == 'expense' or t.type == 'investment' %}−{% else %}+{% endif %}₹{{ t.amount|floatformat:0 }}
         </div>
         <div class="dropdown">
-          <button class="btn btn-ghost" data-bs-toggle="dropdown" style="padding:4px 6px;"><i class="bi bi-three-dots-vertical" style="font-size:.85rem;"></i></button>
+          <button class="btn btn-ghost" data-bs-toggle="dropdown" data-bs-boundary="viewport" style="padding:4px 6px;"><i class="bi bi-three-dots-vertical" style="font-size:.85rem;"></i></button>
           <ul class="dropdown-menu dropdown-menu-end" style="border-radius:12px;font-size:.875rem;">
-            <li><a class="dropdown-item" href="/transactions/{{ t.pk }}/edit/"><i class="bi bi-pencil me-2"></i>Edit</a></li>
-            <li><form method="post" action="/transactions/{{ t.pk }}/delete/" onsubmit="return confirm('Delete this transaction?')">
-              {% csrf_token %}<button class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Delete</button></form></li>
+            <li><a class="dropdown-item" href="/transactions/{{ t.pk }}/edit/?{{ request.GET.urlencode }}"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+            <li>
+              <form method="post" action="/transactions/{{ t.pk }}/delete/?{{ request.GET.urlencode }}" onsubmit="return confirm('Delete this transaction?')" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item text-danger w-100 text-start">
+                  <i class="bi bi-trash me-2"></i>Delete
+                </button>
+              </form>
+            </li>
           </ul>
         </div>
       </div>
@@ -102,7 +130,7 @@
     {% endfor %}
   </div>
 
-  {% if filters.unlabeled %}</form>{% endif %}
+
 
   <!-- Pagination -->
   {% if page_obj.has_other_pages %}

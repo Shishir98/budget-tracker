@@ -43,7 +43,8 @@ class InvestmentForm(forms.ModelForm):
     class Meta:
         model = Investment
         fields = ['name', 'investment_type', 'amount_invested', 'current_value',
-                  'purchase_date', 'maturity_date', 'interest_rate', 'notes', 'is_active']
+                  'purchase_date', 'maturity_date', 'interest_rate', 'notes', 'is_active',
+                  'is_recurring', 'recurring_amount', 'auto_deduct', 'next_deduction_date']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'investment_type': forms.Select(attrs={'class': 'form-select'}),
@@ -54,6 +55,10 @@ class InvestmentForm(forms.ModelForm):
             'interest_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'placeholder': '% per annum'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_recurring': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'recurring_amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'auto_deduct': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'next_deduction_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
 
     def __init__(self, user, *args, **kwargs):
@@ -123,7 +128,7 @@ class PurchasePlanForm(forms.ModelForm):
 class SubscriptionForm(forms.ModelForm):
     class Meta:
         model = Subscription
-        fields = ['name', 'amount', 'billing_cycle', 'next_billing_date', 'category', 'is_active', 'notes']
+        fields = ['name', 'amount', 'billing_cycle', 'next_billing_date', 'category', 'is_active', 'auto_deduct', 'notes']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -131,6 +136,7 @@ class SubscriptionForm(forms.ModelForm):
             'next_billing_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'auto_deduct': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
 

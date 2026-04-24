@@ -35,7 +35,10 @@
     <div class="card-p">
       <div style="display:flex;align-items:flex-start;gap:12px;">
         <div style="flex:1;min-width:0;">
-          <div style="font-weight:600;margin-bottom:3px;">{{ inv.name }}</div>
+          <div style="font-weight:600;margin-bottom:3px;">
+            {{ inv.name }}
+            {% if inv.is_recurring %}<span class="badge badge-pill" style="background:#6f42c1;color:#fff;font-size:0.6rem;margin-left:6px;vertical-align:middle;">Recurring</span>{% endif %}
+          </div>
           <div style="font-size:.75rem;color:var(--muted);margin-bottom:10px;">{{ inv.investment_type.name|default:"—" }} · {{ inv.purchase_date|date:"d M Y" }}</div>
           <div style="display:flex;flex-wrap:wrap;gap:16px;">
             <div>
@@ -101,7 +104,7 @@
         </div>
         <div class="tx-label">
           <div class="name">{{ t.notes|default:t.raw_description|default:"Investment"|truncatechars:40 }}</div>
-          <div class="meta">{{ t.date|date:"d M Y" }} · {{ t.investment_type.name|default:t.category.name|default:"Unlinked" }}</div>
+          <div class="meta">{{ t.date|date:"d M Y" }} · {% if t.investment_type %}{{ t.investment_type.name }}{% elif t.category %}{{ t.category.name }}{% else %}Unlinked{% endif %}</div>
         </div>
         <div class="tx-amount" style="color:#6f42c1">₹{{ t.amount|floatformat:0 }}</div>
       </div>

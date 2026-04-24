@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -7,7 +7,7 @@ from ..models import Transaction, Category, InvestmentType
 from ..forms import TransactionForm
 from django.utils import timezone
 import datetime
-from .helpers import get_period_range
+from .helpers import get_period_range, ensure_subscription_plan
 
 
 @login_required
@@ -106,6 +106,11 @@ def transaction_add(request):
                 obj.is_subscription = True
             obj.user = request.user
             obj.save()
+            
+            # If marked as recurring/subscription, ensure the parent entity exists for auto-deduction
+            if obj.is_subscription:
+                ensure_subscription_plan(obj)
+            
             messages.success(request, 'Transaction added.')
             return redirect('transaction_list')
     else:
@@ -129,8 +134,13 @@ def transaction_edit(request, pk):
             if updated_obj.category and updated_obj.category.is_subscription:
                 updated_obj.is_subscription = True
             updated_obj.save()
+            if updated_obj.is_subscription:
+                ensure_subscription_plan(updated_obj)
             messages.success(request, 'Transaction updated.')
-            return redirect('transaction_list')
+            url = reverse('transaction_list')
+            if request.GET:
+                url += '?' + request.GET.urlencode()
+            return redirect(url)
     else:
         form = TransactionForm(request.user, instance=obj)
     
@@ -149,7 +159,10 @@ def transaction_delete(request, pk):
     if request.method == 'POST':
         obj.delete()
         messages.success(request, 'Transaction deleted.')
-    return redirect('transaction_list')
+    url = reverse('transaction_list')
+    if request.GET:
+        url += '?' + request.GET.urlencode()
+    return redirect(url)
 
 
 @login_required
@@ -161,5 +174,11 @@ def bulk_categorize(request):
         if tx_ids and cat_id:
             cat = get_object_or_404(Category, pk=cat_id, user=request.user)
             Transaction.objects.filter(pk__in=tx_ids, user=request.user).update(category=cat, is_subscription=cat.is_subscription)
+            if cat.is_subscription:
+                for tx in Transaction.objects.filter(pk__in=tx_ids, user=request.user):
+                    ensure_subscription_plan(tx)
             messages.success(request, f'Updated {len(tx_ids)} transactions.')
-    return redirect('transaction_list')
+    url = reverse('transaction_list')
+    if request.GET:
+        url += '?' + request.GET.urlencode()
+    return redirect(url)

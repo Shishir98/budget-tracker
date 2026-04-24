@@ -338,7 +338,9 @@
       {% for item in limit_comparison %}
       <div style="margin-bottom:{% if not forloop.last %}18px{% else %}0{% endif %};">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
-          <span style="font-weight:500;font-size:.875rem;">{{ item.label }}</span>
+          <a href="{% url 'limit_edit' item.pk %}" style="text-decoration:none;color:inherit;font-weight:500;font-size:.875rem;">
+            {{ item.label }} <i class="bi bi-pencil" style="font-size:.65rem;margin-left:4px;color:var(--primary);opacity:0.6;"></i>
+          </a>
           <div style="text-align:right;">
             <span style="font-size:.8rem;font-weight:700;color:{% if item.over %}#E74C3C{% else %}var(--text){% endif %};">₹{{ item.spent|floatformat:0 }}</span>
             <span style="font-size:.75rem;color:var(--muted);"> / ₹{{ item.planned|floatformat:0 }}</span>
@@ -495,10 +497,64 @@ document.addEventListener('DOMContentLoaded', function() {
     // Pass the investment category PK as a number or null
     const investmentCategoryPk = {{ investment_category_pk|default:"null" }};
 
-    if (categorySelect && investmentTypeDiv) {
+
+
+    const typeSelect = modal.querySelector('#id_type');
+    const isSubscriptionCheckbox = modal.querySelector('#id_is_subscription');
+    const form = modal.querySelector('form');
+    
+    function updateCategoryState() {
+        if (!typeSelect || !categorySelect) return;
+        
+        if (typeSelect.value === 'investment') {
+            if (investmentCategoryPk) {
+                categorySelect.value = investmentCategoryPk;
+                categorySelect.disabled = true;
+                if (investmentTypeDiv) investmentTypeDiv.style.display = 'block';
+            }
+        } else {
+            categorySelect.disabled = false;
+            if (investmentTypeDiv) {
+                investmentTypeDiv.style.display = (categorySelect.value == investmentCategoryPk) ? 'block' : 'none';
+            }
+        }
+    }
+
+    if (categorySelect) {
         categorySelect.addEventListener('change', () => {
-            // Compare the selected category value (string) with the investment category PK (number or null)
-            investmentTypeDiv.style.display = (categorySelect.value == investmentCategoryPk) ? 'block' : 'none';
+            if (typeSelect && typeSelect.value !== 'investment') {
+                if (investmentTypeDiv) {
+                    investmentTypeDiv.style.display = (categorySelect.value == investmentCategoryPk) ? 'block' : 'none';
+                }
+            }
+        });
+    }
+
+    if (typeSelect) {
+        const isSubscriptionLabel = isSubscriptionCheckbox ? isSubscriptionCheckbox.previousElementSibling : null;
+        const originalLabel = isSubscriptionLabel ? isSubscriptionLabel.textContent : 'Is subscription';
+        
+        function toggleTypeRelatedFields() {
+            // Update Category
+            updateCategoryState();
+            
+            // Update Subscription Label
+            if (isSubscriptionLabel) {
+                if (typeSelect.value === 'investment') {
+                    isSubscriptionLabel.textContent = 'Recurring';
+                } else {
+                    isSubscriptionLabel.textContent = originalLabel;
+                }
+            }
+        }
+        
+        typeSelect.addEventListener('change', toggleTypeRelatedFields);
+        toggleTypeRelatedFields();
+    }
+
+    if (form) {
+        form.addEventListener('submit', () => {
+            if (categorySelect) categorySelect.disabled = false;
         });
     }
 });

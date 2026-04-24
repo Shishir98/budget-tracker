@@ -5,7 +5,7 @@
 <div class="page">
   <div class="card">
     <div class="card-p">
-      <form method="post" action="{% if obj %}/transactions/{{ obj.pk }}/edit/{% else %}/transactions/add/{% endif %}">
+      <form method="post" action="{% if obj %}/transactions/{{ obj.pk }}/edit/{% else %}/transactions/add/{% endif %}?{{ request.GET.urlencode }}">
         {% csrf_token %}
         {% for field in form %}
         <div style="margin-bottom:16px; {% if field.name == 'investment_type' %}display:none;{% endif %}" {% if field.name == 'investment_type' %}id="div_id_investment_type"{% endif %}>
@@ -16,7 +16,7 @@
         {% endfor %}
         <div style="display:flex;gap:10px;margin-top:8px;">
           <button type="submit" class="btn btn-primary" style="flex:1;">{% if obj %}Save Changes{% else %}Add Transaction{% endif %}</button>
-          <a href="/transactions/" class="btn btn-outline">Cancel</a>
+          <a href="/transactions/?{{ request.GET.urlencode }}" class="btn btn-outline">Cancel</a>
         </div>
       </form>
     </div>
@@ -33,16 +33,63 @@ document.addEventListener('DOMContentLoaded', function() {
     // Pass the investment category PK as a number or null
     const investmentCategoryPk = {{ investment_category_pk|default:"null" }};
 
-    function toggleInvestmentField() {
-        if (categorySelect && investmentTypeDiv) {
-            // Compare the selected category value (string) with the investment category PK (number or null)
-            investmentTypeDiv.style.display = (categorySelect.value == investmentCategoryPk) ? 'block' : 'none';
+    const typeSelect = document.getElementById('id_type');
+    const isSubscriptionCheckbox = document.getElementById('id_is_subscription');
+    const form = document.querySelector('form');
+
+    function updateCategoryState() {
+        if (!typeSelect || !categorySelect) return;
+        
+        if (typeSelect.value === 'investment') {
+            if (investmentCategoryPk) {
+                categorySelect.value = investmentCategoryPk;
+                categorySelect.disabled = true;
+                if (investmentTypeDiv) investmentTypeDiv.style.display = 'block';
+            }
+        } else {
+            categorySelect.disabled = false;
+            if (investmentTypeDiv) {
+                investmentTypeDiv.style.display = (categorySelect.value == investmentCategoryPk) ? 'block' : 'none';
+            }
         }
     }
 
     if (categorySelect) {
-        categorySelect.addEventListener('change', toggleInvestmentField);
-        toggleInvestmentField(); // Run once on load
+        categorySelect.addEventListener('change', () => {
+            if (typeSelect && typeSelect.value !== 'investment') {
+                if (investmentTypeDiv) {
+                    investmentTypeDiv.style.display = (categorySelect.value == investmentCategoryPk) ? 'block' : 'none';
+                }
+            }
+        });
+    }
+
+    if (typeSelect) {
+        const isSubscriptionLabel = isSubscriptionCheckbox ? isSubscriptionCheckbox.previousElementSibling : null;
+        const originalLabel = isSubscriptionLabel ? isSubscriptionLabel.textContent : 'Is subscription';
+        
+        function toggleTypeRelatedFields() {
+            // Update Category
+            updateCategoryState();
+            
+            // Update Subscription Label
+            if (isSubscriptionLabel) {
+                if (typeSelect.value === 'investment') {
+                    isSubscriptionLabel.textContent = 'Recurring';
+                } else {
+                    isSubscriptionLabel.textContent = originalLabel;
+                }
+            }
+        }
+        
+        typeSelect.addEventListener('change', toggleTypeRelatedFields);
+        toggleTypeRelatedFields();
+    }
+
+    if (form) {
+        form.addEventListener('submit', () => {
+            if (categorySelect) categorySelect.disabled = false;
+        });
     }
 });
 </script>

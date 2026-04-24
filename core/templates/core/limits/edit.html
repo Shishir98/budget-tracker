@@ -1,0 +1,28 @@
+{% extends 'core/base.html' %}
+{% block title %}Edit Limit — Budget Tracker{% endblock %}
+{% block page_title %}Edit Budget Limit{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="card">
+    <div class="card-hd">Update Limit</div>
+    <div class="card-p">
+      <form method="post">
+        {% csrf_token %}
+        <div style="margin-bottom:12px;">
+          <label class="form-label">Category</label>
+          {{ form.category }}
+          <div style="font-size:.7rem;color:var(--muted);margin-top:4px;">Leave blank for overall budget. Note: You cannot have two limits for the same category.</div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label class="form-label">Monthly Limit (₹)</label>
+          {{ form.amount }}
+        </div>
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn btn-primary" style="flex:1;">Update Limit</button>
+          <a href="{% url 'limit_list' %}" class="btn btn-ghost" style="flex:1;text-align:center;">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

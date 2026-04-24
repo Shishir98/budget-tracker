@@ -25,12 +25,18 @@ def investment_list(request):
     
     # Calculate totals from the tracked Investment portfolio
     portfolio_invested = investments.aggregate(t=Sum('amount_invested'))['t'] or Decimal('0')
-    portfolio_current = investments.exclude(current_value__isnull=True).aggregate(t=Sum('current_value'))['t'] or Decimal('0')
+    
+    # For current value, sum current_value where provided, and amount_invested where current_value is null
+    portfolio_current_explicit = investments.filter(current_value__isnull=False).aggregate(t=Sum('current_value'))['t'] or Decimal('0')
+    portfolio_current_implicit = investments.filter(current_value__isnull=True).aggregate(t=Sum('amount_invested'))['t'] or Decimal('0')
+    portfolio_current = portfolio_current_explicit + portfolio_current_implicit
 
     # Fetch investment transactions to display unlinked activity
+    # Exclude subscription/recurring transactions as they are already accounted for in Investment.amount_invested
     unlinked_txns = Transaction.objects.filter(
         Q(type='investment') | Q(category__type='investment'),
-        user=request.user
+        user=request.user,
+        is_subscription=False
     ).select_related('category', 'investment_type').order_by('-date')
 
     # Include transaction amounts in the total figures

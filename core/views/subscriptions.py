@@ -29,13 +29,13 @@ def subscription_list(request):
         is_subscription=True,
         date__gte=start,
         date__lte=end
-    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    ).exclude(type='investment').aggregate(total=Sum('amount'))['total'] or Decimal('0')
 
     monthly_total = Decimal(str(planned_monthly)) + actual_monthly
     yearly_total = monthly_total * 12
     
     # Fetch actual payments marked as subscriptions to show in history
-    payment_history = Transaction.objects.filter(user=user, is_subscription=True).select_related('category').order_by('-date')
+    payment_history = Transaction.objects.filter(user=user, is_subscription=True).exclude(type='investment').select_related('category').order_by('-date')
     
     years = range(today.year - 2, today.year + 2)
     months = [(i, datetime.date(2000, i, 1).strftime('%B')) for i in range(1, 13)]

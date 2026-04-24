@@ -5,7 +5,7 @@ from django.db.models import Sum, Q
 from decimal import Decimal
 import datetime, json
 from ..models import Transaction, Investment, Subscription, MonthlyLimit, Category
-from .helpers import get_summary_stats, check_limits
+from .helpers import get_summary_stats, check_limits, process_auto_deductions
 from ..forms import TransactionForm
 
 
@@ -14,6 +14,8 @@ def dashboard(request):
     user = request.user
     profile = user.profile
     today = timezone.now().date()
+
+    # Process auto deductions is now handled by RecurringTransactionsMiddleware
 
     # Period handling from query parameters (same pattern as transactions view)
     try:
@@ -55,6 +57,7 @@ def dashboard(request):
             spent = txns.aggregate(t=Sum('amount'))['t'] or Decimal('0')
         pct = (float(spent) / float(limit.amount) * 100) if float(limit.amount) > 0 else 0
         limit_comparison.append({
+            'pk': limit.pk,
             'label': limit.category.name if limit.category else 'Overall Budget',
             'planned': limit.amount,
             'spent': spent,
@@ -100,15 +103,18 @@ def dashboard(request):
     # Total investments
     portfolio_invested = Investment.objects.filter(user=user, is_active=True).aggregate(
         t=Sum('amount_invested'))['t'] or Decimal('0')
-    portfolio_current = Investment.objects.filter(user=user, is_active=True).aggregate(
+        
+    portfolio_current_explicit = Investment.objects.filter(user=user, is_active=True, current_value__isnull=False).aggregate(
         t=Sum('current_value'))['t'] or Decimal('0')
+    portfolio_current_implicit = Investment.objects.filter(user=user, is_active=True, current_value__isnull=True).aggregate(
+        t=Sum('amount_invested'))['t'] or Decimal('0')
+    portfolio_current = portfolio_current_explicit + portfolio_current_implicit
 
-    # Include generic investment transactions
+    # Include generic investment transactions (all-time, excluding subscriptions)
     txn_invested = Transaction.objects.filter(
         Q(type='investment') | Q(category__type='investment'),
         user=user,
-        date__gte=start,
-        date__lte=end
+        is_subscription=False
     ).aggregate(t=Sum('amount'))['t'] or Decimal('0')
     
     total_invested = portfolio_invested + txn_invested

@@ -60,14 +60,11 @@
       <div class="pbar-wrap">
         <div class="pbar" style="width:{{ a.pct }}%;background:{% if a.over %}#E74C3C{% elif a.warning %}#F39C12{% else %}#2ECC71{% endif %};"></div>
       </div>
-      <div style="display:flex;justify-content:flex-end;margin-top:10px;">
-        {% for lim in limits %}
-          {% if lim.category and lim.category.name == a.label or not lim.category and a.label == 'Overall Budget' %}
-          <form method="post" action="/limits/{{ lim.pk }}/delete/" onsubmit="return confirm('Remove this limit?')">
-            {% csrf_token %}<button class="btn btn-ghost btn-sm" style="color:#E74C3C;font-size:.78rem;">Remove</button>
-          </form>
-          {% endif %}
-        {% endfor %}
+      <div style="display:flex;justify-content:flex-end;align-items:center;margin-top:10px;gap:12px;">
+        <a href="{% url 'limit_edit' a.pk %}" class="btn btn-ghost btn-sm" style="color:var(--primary);font-size:.78rem;padding:0;">Edit</a>
+        <form method="post" action="{% url 'limit_delete' a.pk %}" onsubmit="return confirm('Remove this limit?')">
+          {% csrf_token %}<button class="btn btn-ghost btn-sm" style="color:#E74C3C;font-size:.78rem;padding:0;">Remove</button>
+        </form>
       </div>
     </div>
   </div>

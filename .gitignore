@@ -29,3 +29,4 @@ staticfiles/
 *.sqlite3
 **/migrations/
 .continue/
+.agents/

@@ -13,7 +13,7 @@ This document outlines the core features and capabilities of the Budget Tracker 
 *   **Advanced Filtering & Search**: Filter transactions by keyword (notes/raw description), date ranges, categories, transaction types, 'unlabeled' status, and 'subscription' status. Stable pagination is included for large datasets.
 *   **Smart Categorization**: Custom categories with unique colors and icons. Categories can automatically flag transactions as subscriptions.
 *   **Bulk Actions**: Capability to select and categorize multiple unlabeled transactions at once.
-*   **Smart PDF Import**: Upload and parse bank statements or transaction PDFs. The system uses heuristics to automatically guess transaction categories and types based on descriptions, providing a preview interface before importing.
+*   **Smart PDF Import**: Upload and parse bank statements or transaction PDFs (Currently supports ICICI and HDFC banks). The system uses heuristics to automatically guess transaction categories and types based on descriptions, providing a preview interface before importing.
 
 ## 3. Investment Portfolio
 *   **Asset Management**: Track different types of investments (Fixed Deposits, Stocks, Mutual Funds, etc.).

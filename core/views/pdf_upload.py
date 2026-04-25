@@ -21,7 +21,8 @@ def upload_pdf(request):
                 tmp_path = tmp.name
             
             try:
-                raw_txns = parse_bank_statement(tmp_path)
+                bank_name = form.cleaned_data.get('bank_name', 'icici')
+                raw_txns = parse_bank_statement(tmp_path, bank_name=bank_name)
             except Exception as e:
                 messages.error(request, f'Could not parse PDF: {e}')
                 os.unlink(tmp_path)

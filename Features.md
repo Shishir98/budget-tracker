@@ -7,6 +7,9 @@ This document outlines the core features and capabilities of the Budget Tracker 
 *   **Quick Access**: Fast-entry modal buttons for adding transactions from any page.
 *   **Mobile Optimized**: Responsive design that adapts the layout for mobile devices (e.g., hiding non-essential panels to save space).
 *   **Background Automation**: Recurring transactions and auto-deductions are processed automatically in the background via middleware.
+*   **Transaction Calendar**: A full monthly calendar rendered at the bottom of the dashboard. Each date cell shows colored dot indicators for that day's transaction types (green = Income, red = Expense, purple = Investment). Today's date is highlighted with a filled circle. 
+    *   **Interactive Details**: Clicking a date shows a minimalist popover listing that day's transactions (notes and amounts). 
+    *   **Quick Navigation**: Clicking the same date again or clicking the "View All" link in the popover navigates to the transactions page pre-filtered for that specific date.
 
 ## 2. Transaction Management
 *   **Multi-type Tracking**: Support for Income, Expenses, Side Income, and Investments.
@@ -123,4 +126,4 @@ The application is built with **Django** and follows a modular structure for bet
 
 ---
 ---
-*Last Updated: 2026-04-26 (Added HDFC PDF support and Analytics Period Selection)*
+*Last Updated: 2026-04-26 (Added Transaction Calendar to Dashboard)*

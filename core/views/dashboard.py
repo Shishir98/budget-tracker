@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db.models import Sum, Q
 from decimal import Decimal
-import datetime, json
+import datetime, json, calendar as cal_module
 from ..models import Transaction, Investment, Subscription, MonthlyLimit, Category
 from .helpers import get_summary_stats, check_limits, process_auto_deductions
 from ..forms import TransactionForm
@@ -145,6 +145,66 @@ def dashboard(request):
     else:
         next_ref = datetime.date(ref_date.year, ref_date.month + 1, 1)
 
+    # ── Calendar heatmap data ────────────────────────────────────────────────
+    # One dict per calendar day in the selected month, with income/expense/investment totals.
+    cal_txns = Transaction.objects.filter(
+        user=user, date__gte=cal_start, date__lte=cal_end
+    ).values('date', 'type', 'amount', 'notes', 'raw_description')
+
+    # Aggregate per-day per-type totals in Python (avoids extra DB round-trips)
+    day_totals = {}  # {date: {'income': D, 'expense': D, 'investment': D, 'txns': []}}
+    for tx in cal_txns:
+        d = tx['date']
+        if d not in day_totals:
+            day_totals[d] = {
+                'income': Decimal('0'), 'expense': Decimal('0'), 'investment': Decimal('0'),
+                'txns': []
+            }
+        tx_type = tx['type']
+        amount = tx['amount']
+        
+        # Add to transaction list for popbox
+        day_totals[d]['txns'].append({
+            'notes': tx['notes'] or tx['raw_description'] or tx_type.replace('_', ' ').title(),
+            'amount': float(amount),
+            'type': tx_type
+        })
+
+        if tx_type in ('income', 'side_income'):
+            day_totals[d]['income'] += amount
+        elif tx_type == 'expense':
+            day_totals[d]['expense'] += amount
+        elif tx_type == 'investment':
+            day_totals[d]['investment'] += amount
+
+    days_in_month = cal_module.monthrange(view_year, view_month)[1]
+    # Monday=0 … Sunday=6; we want Sunday=0 for typical calendar display → shift
+    first_weekday_mon = cal_module.monthrange(view_year, view_month)[0]  # Mon=0
+    # Convert to Sun=0 grid (Sunday-first calendar)
+    first_weekday_sun = (first_weekday_mon + 1) % 7
+
+    calendar_days = []
+    for day_num in range(1, days_in_month + 1):
+        d = datetime.date(view_year, view_month, day_num)
+        totals = day_totals.get(d, {})
+        inc = float(totals.get('income', 0))
+        exp = float(totals.get('expense', 0))
+        inv = float(totals.get('investment', 0))
+        calendar_days.append({
+            'day': day_num,
+            'date_str': d.strftime('%Y-%m-%d'),
+            'is_today': (d == today),
+            'income': inc,
+            'expense': exp,
+            'investment': inv,
+            'has_income': inc > 0,
+            'has_expense': exp > 0,
+            'has_investment': inv > 0,
+            'has_txns': (inc + exp + inv) > 0,
+            'txns_json': json.dumps(totals.get('txns', [])),
+        })
+    # ────────────────────────────────────────────────────────────────────────
+
     context = {
         'stats': stats,
         'alerts': alerts,
@@ -174,5 +234,9 @@ def dashboard(request):
         'mom_side_income': json.dumps([float(m['side_income']) for m in mom]),
         'mom_expense': json.dumps([float(m['expense']) for m in mom]),
         'mom_savings': json.dumps([float(m['savings']) for m in mom]),
+        # Calendar
+        'calendar_days': calendar_days,
+        'calendar_month_start_weekday': first_weekday_sun,
+        'calendar_month_name': cal_start.strftime('%B %Y'),
     }
     return render(request, 'core/dashboard.html', context)

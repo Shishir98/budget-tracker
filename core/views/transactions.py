@@ -67,7 +67,10 @@ def transaction_list(request):
         qs = qs.filter(is_subscription=True)
         
     # If no specific date range or search is provided, default to the selected period
-    if not (date_from or date_to or q):
+    date_filter = request.GET.get('date', '')
+    if date_filter:
+        qs = qs.filter(date=date_filter)
+    elif not (date_from or date_to or q):
         qs = qs.filter(date__gte=start, date__lte=end)
 
     qs = qs.order_by('-date', '-created_at', '-id')

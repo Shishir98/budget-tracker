@@ -391,6 +391,71 @@
     {% endfor %}
   </div>
 
+  <!-- Transaction Calendar -->
+  <div class="card" id="calendar">
+    <div class="card-hd">
+      <span>Transaction Calendar</span>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <a href="/?month={{ prev_month }}&year={{ prev_year }}#calendar" class="btn-ghost" style="padding:2px; color:var(--muted);" title="Previous Month">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+        <span style="font-size:.75rem; font-weight:700; color:var(--text); text-transform:none; letter-spacing:0; min-width:80px; text-align:center;">
+          {{ calendar_month_name }}
+        </span>
+        <a href="/?month={{ next_month }}&year={{ next_year }}#calendar" class="btn-ghost" style="padding:2px; color:var(--muted);" title="Next Month">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </div>
+    </div>
+    <div class="card-p" style="padding: 12px 14px 16px;">
+      <!-- Day-of-week headers (Sun first) -->
+      <div class="cal-grid" style="margin-bottom: 2px;">
+        {% for dow in "SMTWTFS" %}
+        <div class="cal-dow">{{ dow }}</div>
+        {% endfor %}
+      </div>
+      <!-- Calendar cells -->
+      <div class="cal-grid">
+        <!-- Leading empty cells for offset -->
+        {% for i in calendar_month_start_weekday|to_range %}
+        <div class="cal-empty"></div>
+        {% endfor %}
+        <!-- Day cells -->
+        {% for day in calendar_days %}
+        <div class="cal-day {% if day.is_today %}today{% endif %}"
+             data-date="{{ day.date_str }}"
+             onclick="handleDayClick(this, '{{ day.date_str }}', {{ day.has_txns|yesno:'true,false' }})">
+          <span class="cal-day-num">{{ day.day }}</span>
+          {% if day.has_txns %}
+          <div class="cal-dots">
+            {% if day.has_income   %}<span class="cal-dot income"></span>{% endif %}
+            {% if day.has_expense  %}<span class="cal-dot expense"></span>{% endif %}
+            {% if day.has_investment %}<span class="cal-dot invest"></span>{% endif %}
+          </div>
+          {% endif %}
+          
+          <!-- Hidden data for JS -->
+          <script type="application/json" class="day-txns-data">
+            {{ day.txns_json|safe }}
+          </script>
+        </div>
+        {% endfor %}
+      </div>
+      <!-- Legend -->
+      <div style="display:flex;gap:16px;margin-top:14px;padding-top:10px;border-top:1px solid var(--border);">
+        <span style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:var(--muted);font-weight:600;">
+          <span class="cal-dot income" style="display:inline-block;"></span> Income
+        </span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:var(--muted);font-weight:600;">
+          <span class="cal-dot expense" style="display:inline-block;"></span> Expense
+        </span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:var(--muted);font-weight:600;">
+          <span class="cal-dot invest" style="display:inline-block;"></span> Investment
+        </span>
+      </div>
+    </div>
+  </div>
+
   <!-- Summary Section -->
   <div style="font-size:.75rem;color:var(--muted);margin:24px 0 16px;">{{ period_start|date:"d M" }} — {{ period_end|date:"d M Y" }}</div>
 
@@ -466,70 +531,7 @@
     </div>
   </div>
 
-  <!-- Transaction Calendar -->
-  <div class="card" id="calendar">
-    <div class="card-hd">
-      <span>Transaction Calendar</span>
-      <div style="display:flex; align-items:center; gap:12px;">
-        <a href="/?month={{ prev_month }}&year={{ prev_year }}#calendar" class="btn-ghost" style="padding:2px; color:var(--muted);" title="Previous Month">
-          <i class="bi bi-chevron-left"></i>
-        </a>
-        <span style="font-size:.75rem; font-weight:700; color:var(--text); text-transform:none; letter-spacing:0; min-width:80px; text-align:center;">
-          {{ calendar_month_name }}
-        </span>
-        <a href="/?month={{ next_month }}&year={{ next_year }}#calendar" class="btn-ghost" style="padding:2px; color:var(--muted);" title="Next Month">
-          <i class="bi bi-chevron-right"></i>
-        </a>
-      </div>
-    </div>
-    <div class="card-p" style="padding: 12px 14px 16px;">
-      <!-- Day-of-week headers (Sun first) -->
-      <div class="cal-grid" style="margin-bottom: 2px;">
-        {% for dow in "SMTWTFS" %}
-        <div class="cal-dow">{{ dow }}</div>
-        {% endfor %}
-      </div>
-      <!-- Calendar cells -->
-      <div class="cal-grid">
-        <!-- Leading empty cells for offset -->
-        {% for i in calendar_month_start_weekday|to_range %}
-        <div class="cal-empty"></div>
-        {% endfor %}
-        <!-- Day cells -->
-        {% for day in calendar_days %}
-        <div class="cal-day {% if day.is_today %}today{% endif %}"
-             data-date="{{ day.date_str }}"
-             onclick="handleDayClick(this, '{{ day.date_str }}', {{ day.has_txns|yesno:'true,false' }})">
-          <span class="cal-day-num">{{ day.day }}</span>
-          {% if day.has_txns %}
-          <div class="cal-dots">
-            {% if day.has_income   %}<span class="cal-dot income"></span>{% endif %}
-            {% if day.has_expense  %}<span class="cal-dot expense"></span>{% endif %}
-            {% if day.has_investment %}<span class="cal-dot invest"></span>{% endif %}
-          </div>
-          {% endif %}
-          
-          <!-- Hidden data for JS -->
-          <script type="application/json" class="day-txns-data">
-            {{ day.txns_json|safe }}
-          </script>
-        </div>
-        {% endfor %}
-      </div>
-      <!-- Legend -->
-      <div style="display:flex;gap:16px;margin-top:14px;padding-top:10px;border-top:1px solid var(--border);">
-        <span style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:var(--muted);font-weight:600;">
-          <span class="cal-dot income" style="display:inline-block;"></span> Income
-        </span>
-        <span style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:var(--muted);font-weight:600;">
-          <span class="cal-dot expense" style="display:inline-block;"></span> Expense
-        </span>
-        <span style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:var(--muted);font-weight:600;">
-          <span class="cal-dot invest" style="display:inline-block;"></span> Investment
-        </span>
-      </div>
-    </div>
-  </div>
+
 
 </div>
 

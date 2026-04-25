@@ -15,7 +15,8 @@
   <select name="month" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
     {% for num, name in months %}<option value="{{ num }}" {% if num == month %}selected{% endif %}>{{ name }}</option>{% endfor %}
   </select>
-  {% elif period == 'quarter' %}
+  {% endif %}
+  {% if period == 'quarter' %}
   <select name="quarter" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
     {% for q in "1234"|make_list %}<option value="{{ q }}" {% if q|add:0 == quarter %}selected{% endif %}>Q{{ q }}</option>{% endfor %}
   </select>
@@ -23,6 +24,7 @@
   <select name="year" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
     {% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}
   </select>
+  {% if period == 'year' %}<input type="hidden" name="month" value="{{ month }}">{% endif %}
 </form>
 {% endblock %}
 
@@ -43,21 +45,28 @@
     <a href="?period=year&year={{ year }}" class="btn btn-sm {% if period == 'year' %}btn-primary{% else %}btn-outline{% endif %}">Year</a>
   </div>
 
-  <!-- Mobile Selector (Visible only on mobile because topbar selector is d-none d-md-block) -->
-  <form method="get" class="d-md-none d-flex gap-2 mb-4">
+  <!-- Period Selectors (Consistent with other pages) -->
+  <form method="get" class="d-flex gap-2 mb-4">
     <input type="hidden" name="period" value="{{ period }}">
+    <a href="?period={{ period }}&month={{ prev_month }}&year={{ prev_year }}&quarter={{ prev_quarter }}" class="btn btn-outline btn-sm" title="Previous period">←</a>
+    
     {% if period == 'month' %}
     <select name="month" class="form-select form-select-sm" onchange="this.form.submit()" style="flex: 1;">
       {% for num, name in months %}<option value="{{ num }}" {% if num == month %}selected{% endif %}>{{ name }}</option>{% endfor %}
     </select>
-    {% elif period == 'quarter' %}
+    {% endif %}
+
+    {% if period == 'quarter' %}
     <select name="quarter" class="form-select form-select-sm" onchange="this.form.submit()" style="flex: 1;">
       {% for q in "1234"|make_list %}<option value="{{ q }}" {% if q|add:0 == quarter %}selected{% endif %}>Q{{ q }}</option>{% endfor %}
     </select>
     {% endif %}
+
     <select name="year" class="form-select form-select-sm" onchange="this.form.submit()" style="flex: 1;">
       {% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}
     </select>
+
+    <a href="?period={{ period }}&month={{ next_month }}&year={{ next_year }}&quarter={{ next_quarter }}" class="btn btn-outline btn-sm" title="Next period">→</a>
   </form>
 
   <!-- Summary -->

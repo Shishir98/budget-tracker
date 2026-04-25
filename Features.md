@@ -37,7 +37,7 @@ This document outlines the core features and capabilities of the Budget Tracker 
     *   **Runway**: Estimation of how many months current cash reserves will last based on the burn rate.
 *   **MoM Comparison**: Month-over-month analysis identifying significant changes in spending behavior.
 *   **Distribution Charts**: Doughnut charts for Expense, Income, and Investment portfolio allocation.
-*   **Periodic Filtering**: View analytics by Month, Quarter, or Year.
+*   **Periodic Filtering**: View analytics by Month, Quarter, or Year. Includes specialized month/year selectors and navigation buttons (consistent with the Dashboard) to easily explore historical data.
 
 ## 6. Subscription Tracking
 *   **Recurring Bills**: Manage Netflix, Gym, Rent, and other subscriptions in one place.
@@ -122,4 +122,5 @@ The application is built with **Django** and follows a modular structure for bet
 *   Storage for uploaded PDF statements and other media assets.
 
 ---
-*Last Updated: 2026-04-26 (Added Password Change in Settings)*
+---
+*Last Updated: 2026-04-26 (Added HDFC PDF support and Analytics Period Selection)*

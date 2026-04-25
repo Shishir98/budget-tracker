@@ -17,3 +17,10 @@ This file contains a comprehensive list of all bugs that have been identified **
 ## 4. Recurring Transaction Schedule Creation
 - **Issue:** The automatic deduction system for recurring investments and subscriptions was failing. A logic error prevented background schedules from being created when a user marked a new transaction as "Recurring", so the parent `Investment` or `Subscription` records weren't generated.
 - **Resolution:** Resolved the logic error so that marking a transaction as "Recurring" properly creates the required parent records and schedules. This allows the `process_auto_deductions` function to effectively generate follow-up transactions on their scheduled dates.
+
+## 5. Analytics Trend Calculation Anchor
+- **Issue:** The financial trend charts on the Analytics page were hardcoded to show data relative to the current date (`today`), regardless of the user's selected month or year in the period selector.
+- **Resolution:** Updated the trend logic in `analytics.py` to use the user's selected date (the end of the selected period) as the anchor for historical data calculation. Additionally, ensured the month selector is hidden in "Quarter" and "Year" modes to reduce UI clutter and improve clarity.
+
+---
+*Last Updated: 2026-04-26 (Analytics Trend Anchor Fix)*

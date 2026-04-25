@@ -170,9 +170,9 @@ def analytics(request):
     if period in ['month', 'year']:
         months_back = 12 if period == 'year' else 6
         for i in range(months_back - 1, -1, -1):
-            d = today.replace(day=1)
+            d = end.replace(day=1)
             for _ in range(i):
-                d = (d.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
+                d = (d - datetime.timedelta(days=1)).replace(day=1)
             m_start = d
             if d.month == 12:
                 m_end = datetime.date(d.year + 1, 1, 1) - datetime.timedelta(days=1)
@@ -213,7 +213,37 @@ def analytics(request):
         inv_by_type[t] = inv_by_type.get(t, 0) + float(txn.amount)
     
     # Build years and months for selectors
-    years = list(range(today.year - 3, today.year + 1))
+    # Navigation helpers
+    if period == 'quarter':
+        p_month, p_year = month, year
+        p_quarter = int(quarter) - 1
+        if p_quarter < 1:
+            p_quarter = 4
+            p_year = int(year) - 1
+        
+        n_month, n_year = month, year
+        n_quarter = int(quarter) + 1
+        if n_quarter > 4:
+            n_quarter = 1
+            n_year = int(year) + 1
+    elif period == 'year':
+        p_month, p_year = month, int(year) - 1
+        p_quarter = quarter
+        n_month, n_year = month, int(year) + 1
+        n_quarter = quarter
+    else: # month
+        ref_date = datetime.date(int(year), int(month), 1)
+        prev_ref = (ref_date - datetime.timedelta(days=1)).replace(day=1)
+        if ref_date.month == 12:
+            next_ref = datetime.date(ref_date.year + 1, 1, 1)
+        else:
+            next_ref = datetime.date(ref_date.year, ref_date.month + 1, 1)
+        p_month, p_year = prev_ref.month, prev_ref.year
+        p_quarter = (p_month - 1) // 3 + 1
+        n_month, n_year = next_ref.month, next_ref.year
+        n_quarter = (n_month - 1) // 3 + 1
+
+    years = list(range(today.year - 3, today.year + 2))
     months = [(i, datetime.date(2000, i, 1).strftime('%B')) for i in range(1, 13)]
     
     context = {
@@ -242,5 +272,7 @@ def analytics(request):
         'inv_data': list(inv_by_type.values()),
         'inv_colors': inv_colors[:len(inv_by_type)],
         'years': years, 'months': months,
+        'prev_month': p_month, 'prev_year': p_year, 'prev_quarter': p_quarter,
+        'next_month': n_month, 'next_year': n_year, 'next_quarter': n_quarter,
     }
     return render(request, 'core/analytics/index.html', context)

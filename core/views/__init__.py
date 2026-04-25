@@ -10,3 +10,4 @@ from .savings import savings_dashboard, plan_edit, plan_delete, plan_toggle
 from .summary import summary
 from .pdf_upload import upload_pdf, pdf_preview
 from .settings_view import user_settings
+from .auth import signup

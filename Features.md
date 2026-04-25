@@ -67,7 +67,20 @@ This document outlines the core features and capabilities of the Budget Tracker 
 
 ---
 
-## 11. Project Architecture & File Structure
+## 11. User Authentication & Signup
+*   **Secure Signup**: New users can create accounts with a unique username, email, and password.
+    *   **Password Security**: Enhanced constraints requiring minimum 8 characters, at least one uppercase letter, one lowercase letter, one digit, and one special character.
+    *   **Standard Validation**: Uses Django's built-in `AUTH_PASSWORD_VALIDATORS` for checking similarity, common passwords, and numeric patterns.
+*   **Automatic Data Seeding**: Upon registration, accounts are automatically initialized with a set of default categories and investment types (based on `setup_demo.py`) to help users get started immediately.
+*   **Secure Login**: Built-in authentication system with secure session management.
+*   **Aesthetic UI**: Premium signup and login pages with modern design, gradients, and micro-animations.
+*   **User Settings & Security**:
+    *   **Profile Management**: Update currency, theme, and month start day.
+    *   **Change Password**: Securely update account password directly from settings, enforcing the same high-security standards as signup.
+
+---
+
+## 12. Project Architecture & File Structure
 
 The application is built with **Django** and follows a modular structure for better maintainability.
 
@@ -93,7 +106,8 @@ The application is built with **Django** and follows a modular structure for bet
     *   `analytics.py`: Data aggregation for charts and trends.
     *   `pdf_upload.py`: Handling of bank statement imports.
     *   `savings.py`: Net flow and savings rate analysis.
-*   **`templates/core/`**: HTML templates organized by feature (e.g., `analytics/`, `investments/`, `transactions/`).
+    *   `auth.py`: User registration and initial data setup logic.
+*   **`templates/core/`**: HTML templates organized by feature (e.g., `analytics/`, `investments/`, `transactions/`, `signup.html`, `login.html`).
 *   **`pdf_parser.py`**: Specialized logic for extracting transaction data from PDF bank statements.
 *   **`middleware.py`**: Custom middleware to handle recurring transactions and automated updates on each request.
 *   **`context_processors.py`**: Provides global variables (like total balance or current month) to all templates.
@@ -108,4 +122,4 @@ The application is built with **Django** and follows a modular structure for bet
 *   Storage for uploaded PDF statements and other media assets.
 
 ---
-*Last Updated: 2026-04-25*
+*Last Updated: 2026-04-26 (Added Password Change in Settings)*

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget Tracker — Sign Up</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+:root {
+    --primary: #5C6BC0;
+    --primary-dark: #3949AB;
+    --secondary: #26C6DA;
+    --bg-gradient: linear-gradient(135deg, #5C6BC0 0%, #26C6DA 100%);
+}
+body { 
+    background: var(--bg-gradient); 
+    min-height: 100vh; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 20px; 
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+.signup-card { 
+    background: white; 
+    border-radius: 24px; 
+    padding: 40px; 
+    width: 100%; 
+    max-width: 450px; 
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: fadeIn 0.6s ease-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.brand { text-align: center; margin-bottom: 32px; }
+.brand h1 { font-size: 1.75rem; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+.brand p { color: #6b7280; font-size: 0.95rem; }
+
+.form-label { font-weight: 600; color: #4b5563; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.025em; }
+.form-control { 
+    border-radius: 12px; 
+    padding: 12px 16px; 
+    border: 1.5px solid #e5e7eb; 
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+.form-control:focus { 
+    border-color: var(--primary); 
+    box-shadow: 0 0 0 4px rgba(92,107,192, 0.1);
+    outline: none;
+}
+.input-group-text { 
+    background: #f9fafb; 
+    border-radius: 12px 0 0 12px; 
+    border: 1.5px solid #e5e7eb; 
+    border-right: none;
+    color: #9ca3af;
+}
+.input-group .form-control { border-radius: 0 12px 12px 0; border-left: none; }
+
+.btn-signup { 
+    background: var(--primary); 
+    border: none; 
+    border-radius: 12px; 
+    padding: 14px; 
+    font-size: 1rem; 
+    font-weight: 600; 
+    width: 100%; 
+    color: white; 
+    margin-top: 24px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(92,107,192, 0.4);
+}
+.btn-signup:hover { 
+    background: var(--primary-dark); 
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(92,107,192, 0.4);
+}
+.footer-text { text-align: center; margin-top: 24px; color: #6b7280; font-size: 0.9rem; }
+.footer-text a { color: var(--primary); text-decoration: none; font-weight: 600; }
+.footer-text a:hover { text-decoration: underline; }
+
+.error-list { color: #dc2626; font-size: 0.85rem; margin-top: 4px; list-style: none; padding: 0; }
+</style>
+</head>
+<body>
+<div class="signup-card">
+  <div class="brand">
+    <img src="/icons/logo.png" alt="Logo" style="height: 64px; width: 64px; object-fit: contain; margin-bottom: 16px;">
+    <h1>Create Account</h1>
+    <p>Start tracking your finances today</p>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger py-2 small rounded-3 mb-4">
+        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="mb-3">
+      <label class="form-label">Username</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-person"></i></span>
+        {{ form.username }}
+      </div>
+      {% if form.username.errors %}
+      <ul class="error-list">{% for error in form.username.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Email Address</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+        {{ form.email }}
+      </div>
+      {% if form.email.errors %}
+      <ul class="error-list">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Password</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+        {{ form.password }}
+      </div>
+      <div class="form-text mt-1" style="font-size: 0.75rem; color: #6b7280;">
+        Must be at least 8 characters and include a mix of uppercase, lowercase, numbers, and symbols.
+      </div>
+      {% if form.password.errors %}
+      <ul class="error-list">{% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+
+    <div class="mb-1">
+      <label class="form-label">Confirm Password</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+        {{ form.confirm_password }}
+      </div>
+      {% if form.confirm_password.errors %}
+      <ul class="error-list">{% for error in form.confirm_password.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+
+    <button type="submit" class="btn-signup">
+        <i class="bi bi-person-plus me-2"></i>Create Account
+    </button>
+  </form>
+
+  <div class="footer-text">
+    Already have an account? <a href="{% url 'login' %}">Log In</a>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
